@@ -1,0 +1,109 @@
+import { MouseEvent, useState } from 'react'
+// MUI
+import Checkbox from '@mui/material/Checkbox'
+import TableRow from '@mui/material/TableRow'
+import TableCell from '@mui/material/TableCell'
+import Typography from '@mui/material/Typography'
+// MUI ICON COMPONENTS
+import Edit from '@mui/icons-material/Edit'
+import Folder from '@mui/icons-material/Folder'
+import RemoveRedEye from '@mui/icons-material/RemoveRedEye'
+import DeleteOutline from '@mui/icons-material/DeleteOutline'
+// CUSTOM COMPONENTS
+import FlexBox from '@/components/flexbox/FlexBox'
+import { TableMoreMenuItem, TableMoreMenu } from '@/components/table'
+
+// ==============================================================
+
+interface IFile {
+  id: string
+  size: string
+  title: string
+  files: string
+  createdAt: string
+}
+
+interface RowProps {
+  data: IFile
+  isSelected: boolean
+  handleDeleteFile: (id: string) => void
+  handleSelectRow: (_: MouseEvent, name: string) => void
+}
+// ==============================================================
+
+export default function FileManagerTableRow({
+  data,
+  isSelected,
+  handleSelectRow,
+  handleDeleteFile,
+}: RowProps) {
+  const [openMenuEl, setOpenMenuEl] = useState<null | HTMLElement>(null)
+
+  const handleOpenMenu = (event: MouseEvent<HTMLButtonElement>) => {
+    setOpenMenuEl(event.currentTarget)
+  }
+
+  const handleCloseOpenMenu = () => setOpenMenuEl(null)
+
+  return (
+    <TableRow hover>
+      <TableCell padding="checkbox">
+        <Checkbox
+          size="small"
+          color="primary"
+          checked={isSelected}
+          onClick={(event) => handleSelectRow(event, data.id)}
+        />
+      </TableCell>
+
+      <TableCell padding="normal">
+        <FlexBox className="name" alignItems="center" gap={1.5}>
+          <Folder />
+
+          <Typography variant="body2" fontWeight={500} color="text.primary">
+            {data.title}
+          </Typography>
+        </FlexBox>
+      </TableCell>
+
+      <TableCell padding="normal">{data.files}</TableCell>
+
+      <TableCell padding="normal">{data.size}</TableCell>
+
+      <TableCell padding="normal">{data.createdAt}</TableCell>
+
+      <TableCell padding="normal" align="right">
+        <TableMoreMenu
+          open={openMenuEl}
+          handleOpen={handleOpenMenu}
+          handleClose={handleCloseOpenMenu}
+        >
+          <TableMoreMenuItem
+            Icon={RemoveRedEye}
+            title="View"
+            handleClick={() => {
+              handleCloseOpenMenu()
+            }}
+          />
+
+          <TableMoreMenuItem
+            Icon={Edit}
+            title="Edit"
+            handleClick={() => {
+              handleCloseOpenMenu()
+            }}
+          />
+
+          <TableMoreMenuItem
+            Icon={DeleteOutline}
+            title="Delete"
+            handleClick={() => {
+              handleDeleteFile(data.id)
+              handleCloseOpenMenu()
+            }}
+          />
+        </TableMoreMenu>
+      </TableCell>
+    </TableRow>
+  )
+}
