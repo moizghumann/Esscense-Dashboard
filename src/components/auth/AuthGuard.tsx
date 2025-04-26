@@ -1,7 +1,7 @@
 import { PropsWithChildren } from 'react'
 import { Navigate, useLocation } from 'react-router'
 // CUSTOM DEFINED HOOK
-import useAuth from '@/hooks/useAuth'
+import { useTheAuth } from '@/hooks/useTheAuth'
 
 /**
  * AuthGuard - PROTECTS ROUTES THAT REQUIRE AUTHENTICATION
@@ -10,7 +10,7 @@ import useAuth from '@/hooks/useAuth'
 
 export default function AuthGuard({ children }: PropsWithChildren) {
   const { pathname } = useLocation()
-  const { isAuthenticated } = useAuth()
+  const { isAuthenticated } = useTheAuth()
 
   if (isAuthenticated) return <>{children}</>
 

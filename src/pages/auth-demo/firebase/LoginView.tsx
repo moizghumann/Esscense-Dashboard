@@ -26,6 +26,7 @@ import { FlexBetween, FlexBox, FlexRowAlign } from '@/components/flexbox'
 import Twitter from '@/icons/social/Twitter'
 import Facebook from '@/icons/social/Facebook'
 import GoogleIcon from '@/icons/GoogleIcon'
+import { useTheAuth } from '@/hooks/useTheAuth'
 
 // STYLED COMPONENT
 const StyledButton = styled(ButtonBase)(({ theme }) => ({
@@ -35,7 +36,10 @@ const StyledButton = styled(ButtonBase)(({ theme }) => ({
 }))
 
 const validationSchema = Yup.object().shape({
-  email: Yup.string().email('Must be a valid email').max(255).required('Email is required'),
+  email: Yup.string()
+    .email('Must be a valid email')
+    .max(255)
+    .required('Email is required'),
   password: Yup.string()
     .min(6, 'Password should be of minimum 6 characters length')
     .required('Password is required'),
@@ -44,7 +48,8 @@ const validationSchema = Yup.object().shape({
 
 export default function LoginView() {
   const [showPassword, setShowPassword] = useState(false)
-  const { signInWithEmail, signInWithGoogle, logout, isAuthenticated, user } = use(AuthContext)
+  const { signInWithEmail, signInWithGoogle, logout, isAuthenticated, user } =
+    useTheAuth()
 
   const handleGoogle = async () => {
     await signInWithGoogle()
@@ -80,11 +85,18 @@ export default function LoginView() {
     return (
       <Layout login>
         <Box maxWidth={550} p={4} width="100%">
-          <Typography variant="body1" fontWeight={600} fontSize={{ sm: 30, xs: 25 }}>
+          <Typography
+            variant="body1"
+            fontWeight={600}
+            fontSize={{ sm: 30, xs: 25 }}
+          >
             Welcome Back
           </Typography>
 
-          <Typography variant="body2" sx={{ mt: 1, mb: 6, color: 'text.secondary' }}>
+          <Typography
+            variant="body2"
+            sx={{ mt: 1, mb: 6, color: 'text.secondary' }}
+          >
             Hello! {user.email}
           </Typography>
 
@@ -99,11 +111,18 @@ export default function LoginView() {
   return (
     <Layout login>
       <Box maxWidth={550} p={4}>
-        <Typography variant="body1" fontWeight={600} fontSize={{ sm: 30, xs: 25 }}>
+        <Typography
+          variant="body1"
+          fontWeight={600}
+          fontSize={{ sm: 30, xs: 25 }}
+        >
           Sign In
         </Typography>
 
-        <Typography variant="body2" sx={{ mt: 1, mb: 6, color: 'text.secondary' }}>
+        <Typography
+          variant="body2"
+          sx={{ mt: 1, mb: 6, color: 'text.secondary' }}
+        >
           New user?{' '}
           <Box fontWeight={500} component={Link} href="/firebase/register">
             Create an Account
@@ -117,7 +136,11 @@ export default function LoginView() {
                 Login with your email id
               </Typography>
 
-              <TextField fullWidth placeholder="Enter your work email" name="email" />
+              <TextField
+                fullWidth
+                placeholder="Enter your work email"
+                name="email"
+              />
             </Grid>
 
             <Grid size={12}>
@@ -170,7 +193,12 @@ export default function LoginView() {
             </Grid>
 
             <Grid size={12}>
-              <Button loading={isSubmitting} type="submit" variant="contained" fullWidth>
+              <Button
+                loading={isSubmitting}
+                type="submit"
+                variant="contained"
+                fullWidth
+              >
                 Sign In
               </Button>
             </Grid>

@@ -1,7 +1,7 @@
 import { PropsWithChildren } from 'react'
 import { Navigate, Outlet, useLocation } from 'react-router'
 // CUSTOM DEFINED HOOK
-import useAuth from '@/hooks/useAuth'
+import { useTheAuth } from '@/hooks/useTheAuth'
 
 /**
  * GuestGuard - PREVENTS AUTHENTICATED USERS FROM ACCESSING GUEST-ONLY ROUTES
@@ -10,7 +10,7 @@ import useAuth from '@/hooks/useAuth'
 
 export default function GuestGuard({ children }: PropsWithChildren) {
   const { state } = useLocation()
-  const { isAuthenticated } = useAuth()
+  const { isAuthenticated } = useTheAuth()
 
   const locationState = state as { from?: string }
   const redirectPath = locationState?.from || '/dashboard'

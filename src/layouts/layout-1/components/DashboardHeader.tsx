@@ -56,7 +56,10 @@ export default function DashboardHeader() {
               <Search sx={{ color: 'grey.400', fontSize: 18 }} />
             </IconButton>
 
-            <SearchBar open={openSearchBar} handleClose={() => setSearchBar(false)} />
+            <SearchBar
+              open={openSearchBar}
+              handleClose={() => setSearchBar(false)}
+            />
           </div>
         </ClickAwayListener>
 
@@ -75,7 +78,9 @@ export default function DashboardHeader() {
 
         {/* THEME SWITCH BUTTON */}
         <IconButton
-          onClick={() => handleChangeTheme(settings.theme === 'light' ? 'dark' : 'light')}
+          onClick={() =>
+            handleChangeTheme(settings.theme === 'light' ? 'dark' : 'light')
+          }
         >
           <ThemeIcon />
         </IconButton>

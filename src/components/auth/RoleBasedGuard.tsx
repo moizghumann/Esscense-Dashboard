@@ -1,7 +1,7 @@
 import { PropsWithChildren } from 'react'
 import { Outlet } from 'react-router'
 // CUSTOM DEFINED HOOK
-import useAuth from '@/hooks/useAuth'
+import { useTheAuth } from '@/hooks/useTheAuth'
 // CUSTOM COMPONENTS
 import ErrorView from '@/page-sections/permission/ErrorView'
 
@@ -17,7 +17,7 @@ interface Props extends PropsWithChildren {
  */
 
 export default function RoleBasedGuard({ children, roles }: Props) {
-  const { user } = useAuth()
+  const { user } = useTheAuth()
 
   const userRole = user?.role
   const hasRequiredRole = userRole && roles.includes(userRole)
