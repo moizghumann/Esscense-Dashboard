@@ -17,8 +17,10 @@ import AvatarLoading from '@/components/avatar-loading'
 import { FlexBetween, FlexBox } from '@/components/flexbox'
 // STYLED COMPONENTS
 import { ProgressWrapper, ContentWrapper } from '../styles'
+import { useUser } from '@clerk/clerk-react'
 
 export default function UserInfo() {
+  const { user } = useUser()
   return (
     <ContentWrapper>
       <FlexBox justifyContent="center">
@@ -49,14 +51,25 @@ export default function UserInfo() {
       </FlexBox>
 
       <Box mt={2}>
-        <Typography variant="body1" fontSize={18} fontWeight={600} textAlign="center">
-          Pixy Krovasky
+        <Typography
+          variant="body1"
+          fontSize={18}
+          fontWeight={600}
+          textAlign="center"
+        >
+          {user?.fullName}
         </Typography>
 
         <FlexBetween maxWidth={360} flexWrap="wrap" margin="auto" mt={1}>
           <InfoItem Icon={Bratislava} title="Developer" />
           <InfoItem Icon={MapMarkerIcon} title="New York" />
-          <InfoItem Icon={DateRange} title="Joined March 17" />
+          <InfoItem
+            Icon={DateRange}
+            title={`Joined ${user?.createdAt?.toLocaleDateString(undefined, {
+              month: 'short',
+              day: 'numeric',
+            })}`}
+          />
         </FlexBetween>
 
         <FlexBetween marginTop={6} flexWrap="wrap">
@@ -66,7 +79,11 @@ export default function UserInfo() {
             </Typography>
 
             <FlexBox alignItems="center" gap={1}>
-              <LinearProgress value={60} color="success" variant="determinate" />
+              <LinearProgress
+                value={60}
+                color="success"
+                variant="determinate"
+              />
               <Typography variant="caption" fontWeight={500}>
                 60%
               </Typography>
@@ -80,7 +97,11 @@ export default function UserInfo() {
 
             <Button size="small">Hire Me</Button>
 
-            <Button size="small" color="secondary" sx={{ minWidth: 0, borderRadius: 2 }}>
+            <Button
+              size="small"
+              color="secondary"
+              sx={{ minWidth: 0, borderRadius: 2 }}
+            >
               <MoreHoriz fontSize="small" />
             </Button>
           </FlexBox>

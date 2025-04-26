@@ -13,7 +13,7 @@ import Typography from '@mui/material/Typography'
 import Visibility from '@mui/icons-material/Visibility'
 import VisibilityOff from '@mui/icons-material/VisibilityOff'
 // CUSTOM DEFINED HOOK
-import useAuth from '@/hooks/useAuth'
+import { useTheAuth } from '@/hooks/useTheAuth'
 // CUSTOM LAYOUT COMPONENT
 import Layout from '../Layout'
 // CUSTOM COMPONENTS
@@ -26,9 +26,14 @@ import Twitter from '@/icons/social/Twitter'
 import Facebook from '@/icons/social/Facebook'
 // STYLED COMPONENTS
 import { SocialButton, StyledDivider } from '../styles'
+import { useClerk, useSession } from '@clerk/clerk-react'
+import { useNavigate } from 'react-router'
 
 const validationSchema = Yup.object().shape({
-  email: Yup.string().email('Must be a valid email').max(255).required('Email is required'),
+  email: Yup.string()
+    .email('Must be a valid email')
+    .max(255)
+    .required('Email is required'),
   password: Yup.string()
     .min(6, 'Password should be of minimum 6 characters length')
     .required('Password is required'),
@@ -37,15 +42,19 @@ const validationSchema = Yup.object().shape({
 
 export default function LoginPageView() {
   const [showPassword, setShowPassword] = useState(false)
-  const { signInWithEmail, signInWithGoogle } = useAuth()
+  const { signInWithEmail, signInWithGoogle } = useTheAuth()
+  const { session } = useSession()
+  const { signOut, setActive } = useClerk()
+
+  const navigate = useNavigate()
 
   const handleGoogle = async () => {
     await signInWithGoogle()
   }
 
   const initialValues = {
-    email: 'jason@ui-lib.com',
-    password: 'dummyPass',
+    email: '',
+    password: '',
     remember: true,
   }
 
@@ -62,10 +71,24 @@ export default function LoginPageView() {
   } = methods
 
   const handleFormSubmit = handleSubmit(async (values) => {
+    console.log(session, 'session')
     try {
-      await signInWithEmail(values.email, values.password)
+      if (session) {
+        await signOut()
+      }
+      const result = await signInWithEmail(values.email, values.password)
+      if (result?.status === 'complete') {
+        console.log(result)
+        console.log('Sign in completed')
+        if (result.createdSessionId) {
+          await setActive({ session: result.createdSessionId })
+        }
+        navigate('/dashboard', { replace: true })
+      } else {
+        console.log('Sign in not completed:', result?.status)
+      }
     } catch (error) {
-      console.log(error)
+      console.error('Sign in error:', error)
     }
   })
 
@@ -76,7 +99,13 @@ export default function LoginPageView() {
           Sign In
         </Typography>
 
-        <Typography variant="body2" fontWeight={500} mt={1} mb={6} color="text.secondary">
+        <Typography
+          variant="body2"
+          fontWeight={500}
+          mt={1}
+          mb={6}
+          color="text.secondary"
+        >
           New user?{' '}
           <Box fontWeight={500} component={Link} href="/register">
             Create an Account
@@ -90,7 +119,11 @@ export default function LoginPageView() {
                 Login with your email id
               </Typography>
 
-              <TextField fullWidth name="email" placeholder="Enter your work email" />
+              <TextField
+                fullWidth
+                name="email"
+                placeholder="Enter your work email"
+              />
             </Grid>
 
             <Grid size={12}>

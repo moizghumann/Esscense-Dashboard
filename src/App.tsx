@@ -1,42 +1,50 @@
-import { createBrowserRouter, RouterProvider } from "react-router";
+import { createBrowserRouter, RouterProvider } from 'react-router'
 // MUI
-import CssBaseline from "@mui/material/CssBaseline";
-import { ThemeProvider } from "@mui/material/styles";
-import { AdapterDateFns } from "@mui/x-date-pickers/AdapterDateFnsV3";
-import { LocalizationProvider } from "@mui/x-date-pickers/LocalizationProvider";
+import CssBaseline from '@mui/material/CssBaseline'
+import { ThemeProvider } from '@mui/material/styles'
+import { AdapterDateFns } from '@mui/x-date-pickers/AdapterDateFnsV3'
+import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider'
 // AUTH CONTEXT FILE
-import { AuthProvider } from "@/contexts/firebaseContext";
+import { AuthProvider } from '@/contexts/firebaseContext'
 // RIGHT-TO-LEFT SUPPORT COMPONENT
-import RTL from "@/components/rtl";
+import RTL from '@/components/rtl'
 // ROUTES METHOD
-import { routes } from "./routes";
+import { routes } from './routes'
 // MUI THEME CREATION METHOD
-import { createCustomTheme } from "./theme";
+import { createCustomTheme } from './theme'
 // SITE SETTINGS CUSTOM DEFINED HOOK
-import useSettings from "@/hooks/useSettings";
+import useSettings from '@/hooks/useSettings'
 // I18N FILE
-import "./i18n";
+import './i18n'
+
+// CLERK
+import { ClerkProvider } from '@clerk/clerk-react'
+
+const PUBLISHABLE_KEY = import.meta.env.VITE_CLERK_PUBLISHABLE_KEY
+if (!PUBLISHABLE_KEY) {
+  throw new Error('Missing Publishable Key')
+}
 
 export default function App() {
   // SITE SETTINGS CUSTOM DEFINED HOOK
-  const { settings } = useSettings();
+  const { settings } = useSettings()
 
   // MUI THEME CREATION
-  const theme = createCustomTheme(settings);
+  const theme = createCustomTheme(settings)
 
   // ROUTER CREATE
-  const router = createBrowserRouter(routes());
+  const router = createBrowserRouter(routes())
 
   return (
     <LocalizationProvider dateAdapter={AdapterDateFns}>
       <ThemeProvider theme={theme}>
-        <AuthProvider>
+        <ClerkProvider publishableKey={PUBLISHABLE_KEY}>
           <RTL>
             <CssBaseline />
             <RouterProvider router={router} />
           </RTL>
-        </AuthProvider>
+        </ClerkProvider>
       </ThemeProvider>
     </LocalizationProvider>
-  );
+  )
 }

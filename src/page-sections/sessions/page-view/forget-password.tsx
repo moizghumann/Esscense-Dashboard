@@ -43,15 +43,24 @@ export default function ForgetPasswordPageView() {
           Forgot your password?
         </Typography>
 
-        <Typography variant="body2" color="text.secondary" sx={{ px: 3, mt: 1 }}>
-          Please enter the email address associated with your account and We will email you a link
-          to reset your password.
+        <Typography
+          variant="body2"
+          color="text.secondary"
+          sx={{ px: 3, mt: 1 }}
+        >
+          Please enter the email address associated with your account and We
+          will email you a link to reset your password.
         </Typography>
 
         <FormProvider methods={methods} onSubmit={handleFormSubmit}>
           <Stack gap={3} mt={5}>
             <TextField name="email" fullWidth label="Email" type="email" />
-            <Button type="submit" fullWidth disabled={!isValid} loading={isSubmitting}>
+            <Button
+              type="submit"
+              fullWidth
+              disabled={!isValid}
+              loading={isSubmitting}
+            >
               Send Link
             </Button>
 

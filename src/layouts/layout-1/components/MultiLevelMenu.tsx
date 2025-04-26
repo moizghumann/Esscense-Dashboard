@@ -2,7 +2,7 @@ import { useCallback, useMemo } from 'react'
 import { useTranslation } from 'react-i18next'
 import { useLocation, useNavigate } from 'react-router'
 // CUSTOM DEFINED HOOK
-import useAuth from '@/hooks/useAuth'
+import { useTheAuth } from '@/hooks/useTheAuth'
 // LAYOUT BASED HOOK
 import useLayout from '@/layouts/layout-1/context/useLayout'
 // CUSTOM COMPONENTS
@@ -26,14 +26,17 @@ type Props = { sidebarCompact: boolean }
 // ===========================================================================
 
 export default function MultiLevelMenu({ sidebarCompact }: Props) {
-  const { user } = useAuth()
+  const { user } = useTheAuth()
   const { t } = useTranslation()
   const navigate = useNavigate()
   const { pathname } = useLocation()
   const { handleCloseMobileSidebar } = useLayout()
 
   // HANDLE ACTIVE CURRENT PAGE
-  const activeRoute = useCallback((path: string) => pathname === path, [pathname])
+  const activeRoute = useCallback(
+    (path: string) => pathname === path,
+    [pathname]
+  )
 
   // HANDLE NAVIGATE TO ANOTHER PAGE
   const handleNavigation = useCallback(
@@ -69,7 +72,11 @@ export default function MultiLevelMenu({ sidebarCompact }: Props) {
       // MENU LIST WITH CHILDREN
       if (item.children) {
         return (
-          <SidebarAccordion key={index} item={item} sidebarCompact={sidebarCompact}>
+          <SidebarAccordion
+            key={index}
+            item={item}
+            sidebarCompact={sidebarCompact}
+          >
             {renderLevels(item.children)}
           </SidebarAccordion>
         )
@@ -78,10 +85,18 @@ export default function MultiLevelMenu({ sidebarCompact }: Props) {
       // MENU ITEM WITH EXTERNAL LINK
       if (item.type === 'extLink') {
         return (
-          <ExternalLink key={index} href={item.path} rel="noopener noreferrer" target="_blank">
+          <ExternalLink
+            key={index}
+            href={item.path}
+            rel="noopener noreferrer"
+            target="_blank"
+          >
             <NavItemButton key={item.name} name="child" active>
               {renderIcon(item)}
-              <ItemText compact={sidebarCompact} active={activeRoute(item.path!)}>
+              <ItemText
+                compact={sidebarCompact}
+                active={activeRoute(item.path!)}
+              >
                 {item.name}
               </ItemText>
             </NavItemButton>
