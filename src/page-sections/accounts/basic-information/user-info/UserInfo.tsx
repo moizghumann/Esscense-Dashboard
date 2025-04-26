@@ -63,7 +63,13 @@ export default function UserInfo() {
         <FlexBetween maxWidth={360} flexWrap="wrap" margin="auto" mt={1}>
           <InfoItem Icon={Bratislava} title="Developer" />
           <InfoItem Icon={MapMarkerIcon} title="New York" />
-          <InfoItem Icon={DateRange} title={`Joined ${user?.createdAt}`} />
+          <InfoItem
+            Icon={DateRange}
+            title={`Joined ${user?.createdAt?.toLocaleDateString(undefined, {
+              month: 'short',
+              day: 'numeric',
+            })}`}
+          />
         </FlexBetween>
 
         <FlexBetween marginTop={6} flexWrap="wrap">
