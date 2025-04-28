@@ -19,6 +19,7 @@ import './i18n'
 
 // CLERK
 import { ClerkProvider } from '@clerk/clerk-react'
+import SupabaseProvider from '@/contexts/supabase'
 
 const PUBLISHABLE_KEY = import.meta.env.VITE_CLERK_PUBLISHABLE_KEY
 if (!PUBLISHABLE_KEY) {
@@ -39,10 +40,12 @@ export default function App() {
     <LocalizationProvider dateAdapter={AdapterDateFns}>
       <ThemeProvider theme={theme}>
         <ClerkProvider publishableKey={PUBLISHABLE_KEY}>
-          <RTL>
-            <CssBaseline />
-            <RouterProvider router={router} />
-          </RTL>
+          <SupabaseProvider>
+            <RTL>
+              <CssBaseline />
+              <RouterProvider router={router} />
+            </RTL>
+          </SupabaseProvider>
         </ClerkProvider>
       </ThemeProvider>
     </LocalizationProvider>
