@@ -49,6 +49,7 @@
     "slick-carousel": "^1.8.1",
     "stylis": "^4.3.6",
     "stylis-plugin-rtl": "^2.1.1",
+    "ua-parser-js": "^2.0.3",
     "yup": "^1.6.1"
   },
   "devDependencies": {
@@ -59,6 +60,7 @@
     "@types/react-dom": "^19.0.4",
     "@types/react-slick": "^0.23.13",
     "@types/stylis": "^4.2.7",
+    "@types/ua-parser-js": "^0.7.39",
     "@typescript-eslint/eslint-plugin": "^8.26.0",
     "@typescript-eslint/parser": "^8.26.0",
     "@vitejs/plugin-react-swc": "^3.8.0",

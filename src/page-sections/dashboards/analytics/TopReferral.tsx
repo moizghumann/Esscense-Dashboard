@@ -21,6 +21,8 @@ import useChartOptions from '@/hooks/useChartOptions'
 import { format } from '@/utils/currency'
 // COMMON STYLED COMPONENTS
 import { HeadTableCell } from './styles'
+import { useTopReferrals } from '@/hooks/useTopReferrals'
+import { useReferralSeries } from '@/hooks/useReferralSeries'
 
 // STYLED COMPONENTS
 const StyledChart = styled(Chart)({
@@ -33,12 +35,17 @@ const BodyTableCell = styled(TableCell)(({ theme }) => ({
   borderTop: `1px dashed ${theme.palette.divider}`,
 }))
 
-// REACT CHART DATA SERIES
-const series = [{ name: 'Referral', data: [0, 30, 16, 70, 26, 30, 12] }]
-
 export default function TopReferral() {
   const theme = useTheme()
   const { t } = useTranslation()
+
+  const { data = [] } = useTopReferrals()
+  const { data: referalSeries = [] } = useReferralSeries()
+
+  // REACT CHART DATA SERIES
+  const series = [
+    { name: 'Referral', data: referalSeries.map((item) => item.value) },
+  ]
 
   const options = useMemo(
     () => (color: string) => {
@@ -57,30 +64,30 @@ export default function TopReferral() {
   // CUSTOM DUMMY DATA
   const TOP_REFERRALS = [
     {
-      id: 1,
+      id: data[0]?.id,
       image: '/static/social-media/dribble.svg',
-      title: 'Dribbble',
-      category: 'Community',
-      rate: 70,
-      visit: 12350,
+      title: data[0]?.title,
+      category: data[0]?.category,
+      rate: data[0]?.rate,
+      visit: data[0]?.visit,
       chart: { series, option: options(theme.palette.success.main) },
     },
     {
-      id: 2,
+      id: data[1]?.id,
       image: '/static/social-media/linkedin.svg',
-      title: 'Linked In',
-      category: 'Social Media',
-      rate: 60,
-      visit: 10275,
+      title: data[1]?.title,
+      category: data[1]?.category,
+      rate: data[1]?.rate,
+      visit: data[1]?.visit,
       chart: { series, option: options(theme.palette.error.main) },
     },
     {
-      id: 3,
+      id: data[2]?.id,
       image: '/static/social-media/twitter.svg',
-      title: 'Twitter',
-      category: 'Social Media',
-      rate: 50,
-      visit: 20348,
+      title: data[2]?.title,
+      category: data[2]?.category,
+      rate: data[2]?.rate,
+      visit: data[2]?.visit,
       chart: { series, option: options(theme.palette.success.main) },
     },
   ]
@@ -88,7 +95,11 @@ export default function TopReferral() {
   return (
     <Card sx={{ padding: 3, pb: 0 }}>
       <div>
-        <Title title={1352} subtitle={t('Visits by Top Referral Source')} percentage="+12.5%" />
+        <Title
+          title={1352}
+          subtitle={t('Visits by Top Referral Source')}
+          percentage="+12.5%"
+        />
       </div>
 
       <Scrollbar>
@@ -109,7 +120,11 @@ export default function TopReferral() {
                   <FlexBox alignItems="center" gap={1.5}>
                     <Avatar variant="square" src={item.image} />
                     <div>
-                      <Typography variant="body2" color="text.primary" fontWeight={600}>
+                      <Typography
+                        variant="body2"
+                        color="text.primary"
+                        fontWeight={600}
+                      >
                         {item.title}
                       </Typography>
 
@@ -122,7 +137,9 @@ export default function TopReferral() {
 
                 <BodyTableCell align="center">{item.rate}%</BodyTableCell>
 
-                <BodyTableCell align="center">{format(item.visit)}</BodyTableCell>
+                <BodyTableCell align="center">
+                  {format(item.visit)}
+                </BodyTableCell>
 
                 <BodyTableCell align="right">
                   <StyledChart

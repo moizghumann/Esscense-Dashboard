@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import * as Yup from 'yup'
 import { useForm } from 'react-hook-form'
 import { yupResolver } from '@hookform/resolvers/yup'
@@ -28,6 +28,8 @@ import Facebook from '@/icons/social/Facebook'
 import { SocialButton, StyledDivider } from '../styles'
 import { useClerk, useSession } from '@clerk/clerk-react'
 import { useNotifications } from '@toolpad/core/useNotifications'
+import { detectBrowser, IBrowserDetection } from '@/utils/browserDetection'
+import { useSupabase } from '@/contexts/supabase'
 
 const validationSchema = Yup.object().shape({
   email: Yup.string()
@@ -45,6 +47,7 @@ export default function LoginPageView() {
   const [error, setError] = useState('')
   const { signInWithEmail, signInWithGoogle } = useTheAuth()
   const { session } = useSession()
+  const { supabase, isLoaded: isSupabaseLoaded } = useSupabase()
   const { signOut, setActive } = useClerk()
   const notifications = useNotifications()
 
@@ -70,6 +73,10 @@ export default function LoginPageView() {
     formState: { isSubmitting, isValid },
   } = methods
 
+  useEffect(() => {
+    console.log(session)
+  }, [session])
+
   const handleFormSubmit = handleSubmit(async (values) => {
     try {
       if (session) {
@@ -78,9 +85,13 @@ export default function LoginPageView() {
       const result = await signInWithEmail(values.email, values.password)
       if (result?.status === 'complete') {
         console.log('Sign in completed')
+        console.log(session)
 
         if (result.createdSessionId) {
+          const sessionInfo = detectBrowser()
+          // console.log('user', user || null)
           await setActive({ session: result.createdSessionId })
+          updateUserSession(sessionInfo)
         }
       } else {
         console.log('Sign in not completed:', result?.status)
@@ -97,6 +108,17 @@ export default function LoginPageView() {
       }
     }
   })
+
+  const updateUserSession = async (sessionInfo?: IBrowserDetection) => {
+    if (supabase && isSupabaseLoaded && session?.user?.id) {
+      console.log('user', session.user)
+      return supabase
+        .from('users')
+        .update({ user_session: sessionInfo })
+        .eq('user_id', session.user.id)
+    }
+    return Promise.resolve() // Return a resolved promise if conditions aren't met
+  }
 
   return (
     <Layout login>
