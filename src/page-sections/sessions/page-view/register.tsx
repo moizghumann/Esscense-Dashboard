@@ -7,8 +7,6 @@ import Box from '@mui/material/Box'
 import Grid from '@mui/material/Grid2'
 import Button from '@mui/material/Button'
 import Typography from '@mui/material/Typography'
-// CUSTOM DEFINED HOOK
-import { useTheAuth } from '@/hooks/useTheAuth'
 // CUSTOM COMPONENTS
 import Link from '@/components/link'
 // CUSTOM SESSIONS LAYOUT
@@ -18,8 +16,6 @@ import { StyledDivider } from '../styles'
 import { useSignUp } from '@clerk/clerk-react'
 import { IconButton, InputAdornment, OutlinedInput } from '@mui/material'
 import { useState } from 'react'
-import RemoveRedEyeRoundedIcon from '@mui/icons-material/RemoveRedEyeRounded'
-import VisibilityOffRoundedIcon from '@mui/icons-material/VisibilityOffRounded'
 import { Visibility, VisibilityOff } from '@mui/icons-material'
 
 const validationSchema = Yup.object().shape({
