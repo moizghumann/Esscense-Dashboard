@@ -42,6 +42,7 @@ const validationSchema = Yup.object().shape({
 
 export default function LoginPageView() {
   const [showPassword, setShowPassword] = useState(false)
+  const [error, setError] = useState('')
   const { signInWithEmail, signInWithGoogle } = useTheAuth()
   const { session } = useSession()
   const { signOut, setActive } = useClerk()
@@ -88,7 +89,14 @@ export default function LoginPageView() {
         console.log('Sign in not completed:', result?.status)
       }
     } catch (error) {
-      console.error('Sign in error:', error)
+      console.log('Sign in error:', error)
+      // Type check before using error properties
+      if (error instanceof Error) {
+        setError(error.message)
+      } else {
+        // Handle case where error is not an Error object
+        setError('An unexpected error occurred during sign in')
+      }
     }
   })
 
@@ -123,6 +131,7 @@ export default function LoginPageView() {
                 fullWidth
                 name="email"
                 placeholder="Enter your work email"
+                onClick={() => setError('')}
               />
             </Grid>
 
@@ -132,6 +141,7 @@ export default function LoginPageView() {
                 placeholder="Password"
                 type={showPassword ? 'text' : 'password'}
                 name="password"
+                onClick={() => setError('')}
                 slotProps={{
                   input: {
                     endAdornment: (
@@ -150,6 +160,34 @@ export default function LoginPageView() {
                   },
                 }}
               />
+
+              {error && (
+                <Box
+                  mt={1}
+                  p={1}
+                  // bgcolor="error.light"
+                  borderRadius={1}
+                  textAlign="start"
+                >
+                  {/* {error === 'user_not_found' ? (
+                    <Typography
+                      variant="body2"
+                      fontWeight={500}
+                      color="error.500"
+                    >
+                      Email not found
+                    </Typography>
+                  ) : ( */}
+                  <Typography
+                    variant="body2"
+                    fontWeight={500}
+                    color="error.500"
+                  >
+                    {error}
+                  </Typography>
+                  {/* )} */}
+                </Box>
+              )}
 
               <FlexBetween my={1}>
                 <FlexBox alignItems="center" gap={1}>
