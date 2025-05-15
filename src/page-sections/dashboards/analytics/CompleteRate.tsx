@@ -7,15 +7,20 @@ import { useTheme } from '@mui/material/styles'
 import Title from '@/components/title'
 // CUSTOM HOOK
 import useChartOptions from '@/hooks/useChartOptions'
+import { useReferralSeries } from '@/hooks/useReferralSeries'
+import { useGoalCompleteMetrics } from '@/hooks/useGoalCompleteMetrics'
 
 // REACT CHART CATEGORIES LABEL
 const categories = ['Sat', 'Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri']
 
-// REACT CHART DATA SERIES
-const series = [{ name: 'Tasks', data: [70, 60, 90, 80, 100, 70, 80] }]
-
 export default function CompleteRate() {
   const theme = useTheme()
+
+  const { data = [] } = useGoalCompleteMetrics()
+  const { data: completeRateSeries = [] } = useReferralSeries()
+  const series = [
+    { name: 'Tasks', data: completeRateSeries.map((item) => item.value) },
+  ]
 
   // REACT CHART OPTIONS
   const options = useChartOptions({
@@ -42,7 +47,11 @@ export default function CompleteRate() {
   return (
     <Card>
       <Box p={3} pb={0} position="relative" zIndex={2}>
-        <Title title="55%" subtitle="Complete Rates" percentage="+12.5%" />
+        <Title
+          title={`${data[0]?.rate}%`}
+          subtitle="Complete Rates"
+          percentage={`${data[0]?.percentage}%`}
+        />
       </Box>
 
       <Box mt={-8}>

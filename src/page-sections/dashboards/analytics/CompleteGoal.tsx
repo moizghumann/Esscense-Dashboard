@@ -7,12 +7,11 @@ import { useTheme } from '@mui/material/styles'
 import Title from '@/components/title'
 // CUSTOM HOOKS
 import useChartOptions from '@/hooks/useChartOptions'
+import { useCompletedAnalyticsMetrics } from '@/hooks/useCompletedAnalyticsMetrics'
+import { useReferralSeries } from '@/hooks/useReferralSeries'
 
 // REACT CHART CATEGORIES LABEL
 const categories = ['Sat', 'Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri']
-
-// REACT CHART DATA SERIES
-const series = [{ name: 'Complete', data: [70, 60, 90, 80, 100, 70, 80] }]
 
 // ==============================================================
 type ComponentProps = { chart?: 'bar' | 'area' }
@@ -20,6 +19,12 @@ type ComponentProps = { chart?: 'bar' | 'area' }
 
 export default function CompleteGoal({ chart = 'bar' }: ComponentProps) {
   const theme = useTheme()
+  const { data = [] } = useCompletedAnalyticsMetrics()
+  const { data: completedSeries = [] } = useReferralSeries()
+
+  const series = [
+    { name: 'Complete', data: completedSeries.map((item) => item.value) },
+  ]
 
   // REACT BAR CHART OPTIONS
   const barChartOptions = useChartOptions({
@@ -55,8 +60,8 @@ export default function CompleteGoal({ chart = 'bar' }: ComponentProps) {
     <Card>
       <Box p={3} pb={0} position="relative" zIndex={2}>
         <Title
-          title={41352}
-          percentage="+12.5%"
+          title={data[0]?.completed_goals}
+          percentage={`${data[0]?.percentage}%`}
           percentageType="primary"
           subtitle="Completed Goals"
         />
@@ -64,11 +69,21 @@ export default function CompleteGoal({ chart = 'bar' }: ComponentProps) {
 
       {chart === 'bar' ? (
         <Box mt={-8}>
-          <Chart type="bar" options={barChartOptions} series={series} height={180} />
+          <Chart
+            type="bar"
+            options={barChartOptions}
+            series={series}
+            height={180}
+          />
         </Box>
       ) : (
         <Box mt={-8}>
-          <Chart type="area" options={areaChartOptions} series={series} height={180} />
+          <Chart
+            type="area"
+            options={areaChartOptions}
+            series={series}
+            height={180}
+          />
         </Box>
       )}
     </Card>
