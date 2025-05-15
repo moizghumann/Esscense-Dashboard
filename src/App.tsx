@@ -20,6 +20,7 @@ import './i18n'
 // CLERK
 import { ClerkProvider } from '@clerk/clerk-react'
 import SupabaseProvider from '@/contexts/supabase'
+import { NotificationsProvider } from '@toolpad/core/useNotifications'
 
 const PUBLISHABLE_KEY = import.meta.env.VITE_CLERK_PUBLISHABLE_KEY
 if (!PUBLISHABLE_KEY) {
@@ -41,10 +42,18 @@ export default function App() {
       <ThemeProvider theme={theme}>
         <ClerkProvider publishableKey={PUBLISHABLE_KEY}>
           <SupabaseProvider>
-            <RTL>
-              <CssBaseline />
-              <RouterProvider router={router} />
-            </RTL>
+            <NotificationsProvider
+              slotProps={{
+                snackbar: {
+                  anchorOrigin: { vertical: 'top', horizontal: 'right' },
+                },
+              }}
+            >
+              <RTL>
+                <CssBaseline />
+                <RouterProvider router={router} />
+              </RTL>
+            </NotificationsProvider>
           </SupabaseProvider>
         </ClerkProvider>
       </ThemeProvider>

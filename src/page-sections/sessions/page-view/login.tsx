@@ -27,7 +27,7 @@ import Facebook from '@/icons/social/Facebook'
 // STYLED COMPONENTS
 import { SocialButton, StyledDivider } from '../styles'
 import { useClerk, useSession } from '@clerk/clerk-react'
-import { useNavigate } from 'react-router'
+import { useNotifications } from '@toolpad/core/useNotifications'
 
 const validationSchema = Yup.object().shape({
   email: Yup.string()
@@ -42,11 +42,11 @@ const validationSchema = Yup.object().shape({
 
 export default function LoginPageView() {
   const [showPassword, setShowPassword] = useState(false)
+  const [error, setError] = useState('')
   const { signInWithEmail, signInWithGoogle } = useTheAuth()
   const { session } = useSession()
   const { signOut, setActive } = useClerk()
-
-  const navigate = useNavigate()
+  const notifications = useNotifications()
 
   const handleGoogle = async () => {
     await signInWithGoogle()
@@ -71,24 +71,30 @@ export default function LoginPageView() {
   } = methods
 
   const handleFormSubmit = handleSubmit(async (values) => {
-    console.log(session, 'session')
     try {
       if (session) {
         await signOut()
       }
       const result = await signInWithEmail(values.email, values.password)
       if (result?.status === 'complete') {
-        console.log(result)
         console.log('Sign in completed')
+
         if (result.createdSessionId) {
           await setActive({ session: result.createdSessionId })
         }
-        navigate('/dashboard', { replace: true })
       } else {
         console.log('Sign in not completed:', result?.status)
+        notifications.show('Login failed, please try again', {
+          severity: 'error',
+          autoHideDuration: 5000,
+        })
       }
     } catch (error) {
-      console.error('Sign in error:', error)
+      if (error instanceof Error) {
+        setError(error.message)
+      } else {
+        setError('An unexpected error occurred during sign in')
+      }
     }
   })
 
@@ -123,6 +129,7 @@ export default function LoginPageView() {
                 fullWidth
                 name="email"
                 placeholder="Enter your work email"
+                onClick={() => setError('')}
               />
             </Grid>
 
@@ -132,6 +139,7 @@ export default function LoginPageView() {
                 placeholder="Password"
                 type={showPassword ? 'text' : 'password'}
                 name="password"
+                onClick={() => setError('')}
                 slotProps={{
                   input: {
                     endAdornment: (
@@ -150,6 +158,34 @@ export default function LoginPageView() {
                   },
                 }}
               />
+
+              {error && (
+                <Box
+                  mt={1}
+                  p={1}
+                  // bgcolor="error.light"
+                  borderRadius={1}
+                  textAlign="start"
+                >
+                  {/* {error === 'user_not_found' ? (
+                    <Typography
+                      variant="body2"
+                      fontWeight={500}
+                      color="error.500"
+                    >
+                      Email not found
+                    </Typography>
+                  ) : ( */}
+                  <Typography
+                    variant="body2"
+                    fontWeight={500}
+                    color="error.500"
+                  >
+                    {error}
+                  </Typography>
+                  {/* )} */}
+                </Box>
+              )}
 
               <FlexBetween my={1}>
                 <FlexBox alignItems="center" gap={1}>

@@ -20,8 +20,8 @@ export const useTheAuth = () => {
       signIn?.create({ identifier: email, password }),
     signInWithGoogle: () => signIn?.authenticateWithRedirect({
       strategy: "oauth_google",
-      redirectUrl: "/auth-callback",
-      redirectUrlComplete: "/auth-callback"
+      redirectUrl: "/dashboard",
+      redirectUrlComplete: "/dashboard"
     }),
     logout: () => signOut()
   };
