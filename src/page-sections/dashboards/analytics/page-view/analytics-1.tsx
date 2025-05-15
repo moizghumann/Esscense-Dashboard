@@ -14,6 +14,7 @@ import SalesByCountry from '../SalesByCountry'
 import { useEffect, useState } from 'react'
 import { useUser } from '@clerk/clerk-react'
 import { useSupabase } from '@/contexts/supabase'
+import { detectBrowser, IBrowserDetection } from '@/utils/browserDetection'
 
 export default function Analytics1PageView() {
   const { user } = useUser()
@@ -84,8 +85,51 @@ export default function Analytics1PageView() {
       }
     }
 
+    const updateUserSession = async () => {
+      try {
+        // 1. Debug the inputs
+        const sessionInfo = detectBrowser()
+
+        if (!supabase || !user?.id) {
+          console.error('Missing supabase client or user ID')
+          return
+        }
+
+        // 2. Check if we can read the user first (tests RLS for read)
+        const { data: existingUser, error: fetchError } = await supabase
+          .from('users')
+          .select('id, user_id, user_session')
+          .eq('user_id', user.id)
+          .single()
+
+        if (fetchError) {
+          console.error('Cannot read user data - likely an RLS issue')
+          return
+        }
+
+        // 3. Try the update without the throwOnError
+        const { data: updated, error: updateError } = await supabase
+          .from('users')
+          .update({ user_session: sessionInfo })
+          .eq('user_id', user.id)
+          .select()
+
+        if (updateError) {
+          console.error('Update failed with error:', updateError)
+          return
+        }
+
+        if (!updated || updated.length === 0) {
+          console.warn('Update succeeded but no rows were affected')
+        }
+      } catch (error) {
+        console.error('Unexpected error during user session update:', error)
+      }
+    }
+
     // Execute the upsert function
     upsertUserProfile()
+    updateUserSession()
 
     // Dependencies: This effect should re-run if the Supabase client instance changes,
     // or if the user's ID or full name changes.

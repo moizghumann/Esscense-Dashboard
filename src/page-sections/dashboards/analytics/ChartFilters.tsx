@@ -1,4 +1,4 @@
-import { useCallback, useMemo, useState } from 'react'
+import { useCallback, useEffect, useMemo, useState } from 'react'
 import Chart, { Props } from 'react-apexcharts'
 import { useTranslation } from 'react-i18next'
 // MUI
@@ -8,7 +8,10 @@ import { styled, useTheme } from '@mui/material/styles'
 // CUSTOM HOOKS
 import useChartOptions from '@/hooks/useChartOptions'
 // CUSTOM UTILS METHODS
-import { format, formatK } from '@/utils/currency'
+import { formatK } from '@/utils/currency'
+import { useChartData } from '@/hooks/useAnalyticsChartData'
+import { formatTime } from '@/utils/formatTime'
+import { useMonthlySales } from '@/hooks/getMonthlySales'
 
 // STYLED COMPONENTS
 const ChartWrapper = styled('div')({
@@ -34,38 +37,6 @@ const BoxWrapper = styled('div', {
   ...(active && { backgroundColor: theme.palette.action.selected }),
 }))
 
-// CUSTOM DUMMY DATA
-const LIST = [
-  { id: 1, title: 'Users', value: format(12060), percentage: 12.5 },
-  { id: 2, title: 'Sessions', value: format(30000), percentage: 5.56 },
-  { id: 3, title: 'Bounce Rate', value: '53%', percentage: -1.5 },
-  { id: 4, title: 'Session Duration', value: '3m 10s', percentage: -10.5 },
-]
-
-// REACT CHART DATA SERIES
-const series = [
-  {
-    name: 'Sales',
-    data: [8000, 4000, 4500, 17000, 18000, 40000, 18000, 10000, 6000, 20000],
-  },
-]
-
-// REACT CHART CATEGORIES LABEL
-const categories = [
-  'Jan',
-  'Feb',
-  'Mar',
-  'Apr',
-  'May',
-  'Jun',
-  'Jul',
-  'Aug',
-  'Sep',
-  'Oct',
-  'Nov',
-  'Dec',
-]
-
 // ==============================================================
 interface ComponentProps extends Props {}
 // ==============================================================
@@ -73,11 +44,39 @@ interface ComponentProps extends Props {}
 export default function ChartFilters({ type = 'area' }: ComponentProps) {
   const theme = useTheme()
   const { t } = useTranslation()
-  const [selectedItem, setSelectedItem] = useState(LIST[1].id)
 
-  const handleChange = useCallback((id: number) => () => setSelectedItem(id), [])
+  const { data: chartData, loading, error } = useChartData()
+  const {
+    data: monthlySales,
+    loading: monthlySalesLoading,
+    error: monthlySalesError,
+  } = useMonthlySales()
 
-  const maxValue = useMemo(() => Math.max(...series[0].data) * 1.2, [series])
+  const [selectedItem, setSelectedItem] = useState<number | null>(null)
+
+  useEffect(() => {
+    if (!loading && !error && chartData.length > 0) {
+      const idx = chartData.length > 1 ? 1 : 0
+      setSelectedItem(chartData[idx].id)
+    }
+  }, [chartData, loading, error])
+
+  useEffect(() => {
+    if (!monthlySalesLoading && !monthlySalesError && monthlySales.length > 0) {
+      const idx = monthlySales.length > 1 ? 1 : 0
+      setSelectedItem(monthlySales[idx].month_idx)
+    }
+  }, [monthlySales, monthlySalesLoading, monthlySalesError])
+
+  const handleChange = useCallback(
+    (id: number) => () => setSelectedItem(id),
+    []
+  )
+
+  const salesData = monthlySales.map((item) => item.sales_amount)
+  const salesMonths = monthlySales.map((item) => item.month_name)
+
+  const maxValue = useMemo(() => Math.max(...salesData) * 1.2, [monthlySales])
 
   const options = useChartOptions({
     legend: { show: false },
@@ -86,9 +85,13 @@ export default function ChartFilters({ type = 'area' }: ComponentProps) {
       strokeDashArray: 3,
       borderColor: theme.palette.divider,
     },
-    colors: [theme.palette.primary.main, theme.palette.primary[300], theme.palette.primary[100]],
+    colors: [
+      theme.palette.primary.main,
+      theme.palette.primary[300],
+      theme.palette.primary[100],
+    ],
     xaxis: {
-      categories: categories,
+      categories: salesMonths,
       crosshairs: { show: true },
       labels: {
         show: true,
@@ -113,35 +116,52 @@ export default function ChartFilters({ type = 'area' }: ComponentProps) {
   return (
     <Card>
       <TopContentWrapper>
-        {LIST.map((item) => (
+        {chartData.map((item) => (
           <BoxWrapper
             key={item.id}
             className="list-item"
             onClick={handleChange(item.id)}
             active={selectedItem === item.id ? 1 : 0}
           >
-            <Typography noWrap variant="body2" fontWeight={500} color="text.secondary">
-              {t(item.title)}
+            <Typography
+              noWrap
+              variant="body2"
+              fontWeight={500}
+              color="text.secondary"
+            >
+              {t(item.display_title)}
             </Typography>
 
             <Typography variant="body2" fontWeight={600} fontSize={22}>
-              {item.value}
+              {item.display_title === 'Session Duration'
+                ? formatTime(item.duration_value)
+                : item.numeric_value}
             </Typography>
 
             <Typography
               variant="body2"
               fontWeight={500}
-              color={item.percentage > 0 ? 'success.main' : 'error.main'}
+              color={item.percentage_delta > 0 ? 'success.main' : 'error.main'}
             >
-              {item.percentage > 0 && '+'}
-              {item.percentage}%
+              {item.percentage_delta > 0 && '+'}
+              {item.percentage_delta}%
             </Typography>
           </BoxWrapper>
         ))}
       </TopContentWrapper>
 
       <ChartWrapper>
-        <Chart type={type} height={335} series={series} options={options} />
+        <Chart
+          type={type}
+          height={335}
+          series={[
+            {
+              name: 'Sales',
+              data: salesData,
+            },
+          ]}
+          options={options}
+        />
       </ChartWrapper>
     </Card>
   )
