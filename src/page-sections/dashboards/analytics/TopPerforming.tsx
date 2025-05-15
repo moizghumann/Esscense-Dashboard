@@ -11,26 +11,15 @@ import Scrollbar from '@/components/scrollbar'
 import { format } from '@/utils/currency'
 // STYLED COMPONENTS
 import { HeadTableCell, BodyTableCell } from './styles'
-
-// DUMMY DATA LIST
-const TOP_PERFORMING = [
-  { id: 1, page: 'https://onion.com', click: 1369, views: '50M', click2: -165 },
-  { id: 2, page: 'https://onion/analytic.com', click: 1003, views: '28M', click2: 528 },
-  { id: 3, page: 'https://onion/ecommerce.com', click: 1987, views: '63M', click2: 898 },
-  { id: 4, page: 'https://onion/crm.com', click: 1462, views: '50M', click2: -369 },
-  { id: 5, page: 'https://onion/finance.com', click: 986, views: '70M', click2: -479 },
-  { id: 6, page: 'https://onion/projectm.com', click: 1028, views: '75M', click2: 669 },
-  { id: 7, page: 'https://onion/logistics.com', click: 369, views: '25M', click2: 215 },
-]
+import { useTopPerformingSites } from '@/hooks/useTopPermormingSites'
 
 export default function TopPerforming() {
+  const { data: TOP_PERFORMING = [] } = useTopPerformingSites()
   return (
     <Card sx={{ padding: 3, pb: 1 }}>
       <Box mb={3}>
-        <Typography variant="body2" fontSize={18} fontWeight={500}>
-          Top performing pages
-        </Typography>
-
+        Top performing pages
+        <Typography variant="body2" fontSize={18} fontWeight={500}></Typography>
         <Typography variant="body2" color="text.secondary">
           Counted in Millions
         </Typography>

@@ -9,6 +9,7 @@ import { styled, useTheme } from '@mui/material/styles'
 import worldMap from '@/__fakeData__/map/worldMap.json'
 // CUSTOM HOOK
 import useChartOptions from '@/hooks/useChartOptions'
+import { useReferralSeries } from '@/hooks/useReferralSeries'
 
 // STYLED COMPONENTS
 const MapWrapper = styled('div')(({ theme }) => ({
@@ -33,7 +34,7 @@ const MapWrapper = styled('div')(({ theme }) => ({
 const categories = ['AUS', 'USA', 'RSA', 'BRA', 'JAP', 'UAE', 'THI']
 
 // REACT CHART DATA SERIES
-const series = [{ name: 'Tasks', data: [60, 40, 80, 60, 90, 70, 80] }]
+// const series = [{ name: 'Tasks', data: [60, 40, 80, 60, 90, 70, 80] }]
 
 // ==============================================================
 type Props = { chartHorizontal?: boolean }
@@ -41,6 +42,9 @@ type Props = { chartHorizontal?: boolean }
 
 export default function SalesByCountry({ chartHorizontal }: Props) {
   const theme = useTheme()
+  const { data = [] } = useReferralSeries()
+
+  const series = [{ name: 'Tasks', data: data.map((item) => item.value) }]
 
   // REACT CHART OPTIONS
   const options = useChartOptions({
