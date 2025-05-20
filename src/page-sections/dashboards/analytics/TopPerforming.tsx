@@ -18,8 +18,9 @@ export default function TopPerforming() {
   return (
     <Card sx={{ padding: 3, pb: 1 }}>
       <Box mb={3}>
-        Top performing pages
-        <Typography variant="body2" fontSize={18} fontWeight={500}></Typography>
+        <Typography variant="body2" fontSize={18} fontWeight={500}>
+          Top performing pages
+        </Typography>
         <Typography variant="body2" color="text.secondary">
           Counted in Millions
         </Typography>
