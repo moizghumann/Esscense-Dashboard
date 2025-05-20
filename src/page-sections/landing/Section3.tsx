@@ -26,7 +26,7 @@ import Delete from '@mui/icons-material/Delete'
 import KeyboardTab from '@mui/icons-material/KeyboardTab'
 import Masonry from '@mui/lab/Masonry'
 // CUSTOM PAGE SECTION COMPONENTS
-import LiveUser from '@/page-sections/dashboards/analytics/LiveUser'
+import TotalUsers from '@/page-sections/dashboards/analytics/TotalUsers'
 import ReturnRate from '@/page-sections/dashboards/ecommerce/ReturnRate'
 import CompleteGoal from '@/page-sections/dashboards/analytics/CompleteGoal'
 import DailyVisitors from '@/page-sections/dashboards/ecommerce/DailyVisitors'
@@ -39,8 +39,19 @@ export default function Section3() {
     <Container maxWidth="lg" sx={{ mt: { sm: 24, xs: 12 } }}>
       <Grid container spacing={2}>
         <Grid size={{ lg: 5, md: 6, xs: 12 }}>
-          <Box maxWidth={450} position="sticky" top={0} pt={4} mb={{ xs: 4, mb: 0 }}>
-            <Typography variant="body1" fontSize={36} fontWeight={600} lineHeight={1.2}>
+          <Box
+            maxWidth={450}
+            position="sticky"
+            top={0}
+            pt={4}
+            mb={{ xs: 4, mb: 0 }}
+          >
+            <Typography
+              variant="body1"
+              fontSize={36}
+              fontWeight={600}
+              lineHeight={1.2}
+            >
               Vast collection of components
             </Typography>
 
@@ -48,7 +59,8 @@ export default function Section3() {
               variant="body2"
               sx={{ mt: 1, mb: 3, fontSize: 18, color: 'text.secondary' }}
             >
-              Save thousands of development hours with Essence’s well crafted features and clean code
+              Save thousands of development hours with Essence’s well crafted
+              features and clean code
             </Typography>
 
             <Button
@@ -134,25 +146,39 @@ export default function Section3() {
             <Stack direction="row" alignItems="center" spacing={2}>
               <div>
                 <FormControlLabel
-                  control={<Checkbox size="small" color="error" defaultChecked />}
+                  control={
+                    <Checkbox size="small" color="error" defaultChecked />
+                  }
                   label="Checkbox"
                 />
               </div>
 
               <div>
                 <FormControlLabel
-                  control={<Radio size="small" color="success" defaultChecked />}
+                  control={
+                    <Radio size="small" color="success" defaultChecked />
+                  }
                   label="Radio"
                 />
               </div>
 
               <div>
-                <FormControlLabel control={<Switch size="small" defaultChecked />} label="Switch" />
+                <FormControlLabel
+                  control={<Switch size="small" defaultChecked />}
+                  label="Switch"
+                />
               </div>
 
               <div>
                 <FormControlLabel
-                  control={<Checkbox size="small" color="warning" indeterminate defaultChecked />}
+                  control={
+                    <Checkbox
+                      size="small"
+                      color="warning"
+                      indeterminate
+                      defaultChecked
+                    />
+                  }
                   label="Indeterminate"
                 />
               </div>
@@ -168,7 +194,7 @@ export default function Section3() {
               <DailyVisitors />
 
               <div>
-                <LiveUser />
+                <TotalUsers />
               </div>
 
               <div>

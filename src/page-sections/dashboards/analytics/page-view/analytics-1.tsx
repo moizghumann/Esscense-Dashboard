@@ -2,7 +2,6 @@ import Grid from '@mui/material/Grid2'
 import Stack from '@mui/material/Stack'
 // CUSTOM PAGE SECTION COMPONENTS
 import Footer from '../../_common/Footer'
-import LiveUser from '../LiveUser'
 import TopQueries from '../TopQueries'
 import TopReferral from '../TopReferral'
 import ChartFilters from '../ChartFilters'
@@ -15,6 +14,7 @@ import { useEffect, useState } from 'react'
 import { useUser } from '@clerk/clerk-react'
 import { useSupabase } from '@/contexts/supabase'
 import { detectBrowser, IBrowserDetection } from '@/utils/browserDetection'
+import TotalUsers from '@/page-sections/dashboards/analytics/TotalUsers'
 
 export default function Analytics1PageView() {
   const { user } = useUser()
@@ -145,7 +145,7 @@ export default function Analytics1PageView() {
 
         {/* LIVER ONLINE USER CHART CARD */}
         <Grid size={{ md: 4, xs: 12 }}>
-          <LiveUser />
+          <TotalUsers />
         </Grid>
 
         {/* VISIT BY TOP REFERRAL SOURCE CHART CARD */}

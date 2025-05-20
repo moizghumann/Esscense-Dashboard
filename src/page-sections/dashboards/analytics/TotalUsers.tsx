@@ -7,11 +7,11 @@ import Typography from '@mui/material/Typography'
 import { useTheme } from '@mui/material/styles'
 // CUSTOM HOOKS
 import useChartOptions from '@/hooks/useChartOptions'
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { useSupabase } from '@/contexts/supabase'
 import { CircularProgress } from '@mui/material'
 
-export default function LiveUser() {
+export default function TotalUsers() {
   const theme = useTheme()
   const { t } = useTranslation()
   const { supabase } = useSupabase()
@@ -20,6 +20,70 @@ export default function LiveUser() {
   >([])
   const [categories, setCategories] = useState<string[]>([])
   const [isLoading, setIsLoading] = useState(true)
+  const [users, setUsers] = useState<any[]>([])
+
+  if (!supabase) {
+    console.error('Supabase client is not initialized')
+    return
+  }
+
+  const channelRef = useRef<ReturnType<typeof supabase.channel> | null>(null)
+
+  const realTimeSub = () => {
+    const channel = supabase.channel('realtime-users-update')
+    channel
+      .on(
+        'postgres_changes',
+        { event: '*', schema: 'public', table: 'users' },
+        (payload) => {
+          setUsers((curr) => applyChange(curr, payload))
+        }
+      )
+      .subscribe((status) => {
+        if (status !== 'SUBSCRIBED') return
+        console.log('connection established')
+      })
+
+    return channel
+  }
+
+  const applyChange = (list: any[], payload: any) => {
+    const { eventType, new: newRow, old: oldRow } = payload
+
+    switch (eventType) {
+      case 'INSERT':
+        return [...list, newRow]
+      case 'UPDATE':
+        return list.map((u) => (u.id === newRow.id ? newRow : u))
+      case 'DELETE':
+        return list.filter((u) => u.id !== oldRow.id)
+      default:
+        return list
+    }
+  }
+
+  const getUsers = () => {
+    supabase
+      .from('users')
+      .select('*')
+      .then(({ data, error }) => {
+        if (error) {
+          console.error('Error fetching users:', error)
+          return
+        }
+        setUsers(data)
+      })
+  }
+
+  useEffect(() => {
+    getUsers()
+
+    channelRef.current = realTimeSub()
+
+    return () => {
+      channelRef.current?.unsubscribe()
+    }
+  }, [supabase])
 
   useEffect(() => {
     const fetchLiveUsers = async () => {
@@ -91,21 +155,15 @@ export default function LiveUser() {
     },
   })
 
-  // Calculate total value from series data
-  const totalValue =
-    seriesData.length > 0 && seriesData[0].data
-      ? seriesData[0].data.reduce((sum, val) => sum + val, 0)
-      : 0
-
   return (
     <Card className="p-3 h-full">
       <div>
         <Typography variant="body2" color="text.secondary">
-          {t('Live Online User')}
+          {t('Total Users')}
         </Typography>
 
         <Typography variant="body2" fontSize={28} fontWeight={600}>
-          {totalValue}
+          {users.length}
         </Typography>
       </div>
 
