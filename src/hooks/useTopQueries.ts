@@ -1,5 +1,5 @@
-import { useSupabase } from '@/contexts/supabase'
-import { useEffect, useState } from 'react'
+import { useSupabase } from '@/providers/supabase'
+import { useQuery } from '@tanstack/react-query'
 
 export interface ITopQuery {
   id: number
@@ -10,29 +10,31 @@ export interface ITopQuery {
 
 export function useTopQueries() {
   const { supabase } = useSupabase()
-  const [data, setData] = useState<ITopQuery[]>([])
-  const [error, setError] = useState<string | null>(null)
-  const [loading, setLoading] = useState<boolean>(false)
 
-  useEffect(() => {
-    const load = async () => {
-      setLoading(true)
-      const { data: rows, error } = await supabase!
+  if (!supabase)
+    return {
+      data: [] as ITopQuery[],
+      error: null,
+      isLoading: true,
+    }
+
+  const {
+    data = [],
+    error,
+    isLoading,
+  } = useQuery({
+    queryKey: ['top_queries'],
+    queryFn: async (): Promise<ITopQuery[]> => {
+      const { data, error } = await supabase
         .from('top_queries')
         .select('id, keyword, click, value')
         .order('click', { ascending: false })
 
-      if (error) {
-        console.error('Fetch top queries error:', error)
-        setError(error.message)
-      } else {
-        setData(rows ?? [])
-      }
-      setLoading(false)
-    }
+      if (error) throw error
+      return data ?? []
+    },
+    placeholderData: [],
+  })
 
-    load()
-  }, [supabase])
-
-  return { data, error, loading }
+  return { data, error, isLoading }
 }

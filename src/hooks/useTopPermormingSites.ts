@@ -1,5 +1,5 @@
-import { useSupabase } from '@/contexts/supabase'
-import { useEffect, useState } from 'react'
+import { useSupabase } from '@/providers/supabase'
+import { useQuery } from '@tanstack/react-query'
 
 export interface ITopPerformingSite {
   id: number
@@ -11,29 +11,27 @@ export interface ITopPerformingSite {
 
 export function useTopPerformingSites() {
   const { supabase } = useSupabase()
-  const [data, setData] = useState<ITopPerformingSite[]>([])
-  const [error, setError] = useState<string | null>(null)
-  const [loading, setLoading] = useState<boolean>(false)
 
-  useEffect(() => {
-    const load = async () => {
-      setLoading(true)
-      const { data: rows, error } = await supabase!
+  if (!supabase)
+    return { data: [] as ITopPerformingSite[], error: null, isLoading: true }
+
+  const {
+    data = [],
+    error,
+    isLoading,
+  } = useQuery({
+    queryKey: ['top_performing_sites'],
+    queryFn: async (): Promise<ITopPerformingSite[]> => {
+      const { data, error } = await supabase
         .from('top_performing_sites')
         .select('id, page, click, views, click2')
         .order('click', { ascending: false })
 
-      if (error) {
-        console.error('Fetch top performing sites error:', error)
-        setError(error.message)
-      } else {
-        setData(rows ?? [])
-      }
-      setLoading(false)
-    }
+      if (error) throw error
+      return data ?? []
+    },
+    placeholderData: [],
+  })
 
-    load()
-  }, [supabase])
-
-  return { data, error, loading }
+  return { data, error, isLoading }
 }

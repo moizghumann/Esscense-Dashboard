@@ -22,7 +22,12 @@ export default function SupabaseProvider({ children }: Props) {
   const [isLoaded, setIsLoaded] = useState(false)
 
   useEffect(() => {
-    if (!session) return
+    if (!session) {
+      setSupabase(null)
+      setIsLoaded(false)
+      return
+    }
+
     const client = createClient(
       import.meta.env.VITE_SUPABASE_URL!,
       import.meta.env.VITE_SUPABASE_KEY!,

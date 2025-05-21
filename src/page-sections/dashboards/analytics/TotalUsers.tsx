@@ -8,7 +8,7 @@ import { useTheme } from '@mui/material/styles'
 // CUSTOM HOOKS
 import useChartOptions from '@/hooks/useChartOptions'
 import { useEffect, useRef, useState } from 'react'
-import { useSupabase } from '@/contexts/supabase'
+import { useSupabase } from '@/providers/supabase'
 import { CircularProgress } from '@mui/material'
 
 export default function TotalUsers() {
@@ -23,7 +23,6 @@ export default function TotalUsers() {
   const [users, setUsers] = useState<any[]>([])
 
   if (!supabase) {
-    console.error('Supabase client is not initialized')
     return
   }
 
@@ -83,7 +82,7 @@ export default function TotalUsers() {
     return () => {
       channelRef.current?.unsubscribe()
     }
-  }, [supabase])
+  }, [])
 
   useEffect(() => {
     const fetchLiveUsers = async () => {
@@ -133,7 +132,7 @@ export default function TotalUsers() {
     }
 
     fetchLiveUsers()
-  }, [supabase])
+  }, [])
 
   const options = useChartOptions({
     stroke: { show: false },

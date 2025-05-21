@@ -1,39 +1,42 @@
-import { useSupabase } from '@/contexts/supabase'
-import { useEffect, useState } from 'react'
+// src/features/analytics/useChartData.ts
+import { useQuery } from '@tanstack/react-query'
+import { useSupabase } from '@/providers/supabase'
 
 export interface IAnalyticsChartData {
-  created_at: string
-  display_title: string
-  duration_value: string
   id: number
   key_name: string
+  display_title: string
   numeric_value: number
   percentage_delta: number
+  duration_value: string
+  created_at: string
 }
 
 export function useChartData() {
   const { supabase } = useSupabase()
-  const [data, setData] = useState<IAnalyticsChartData[]>([])
-  const [error, setError] = useState<string | null>(null)
-  const [loading, setLoading] = useState(false)
 
-  useEffect(() => {
-    const load = async () => {
-      setLoading(true)
-      const { data: rows, error } = await supabase!
+  // 1️⃣  Early app boot?  → give a safe placeholder object
+  if (!supabase)
+    return { data: [] as IAnalyticsChartData[], error: null, isLoading: true }
+
+  // 2️⃣  React Query does the heavy lifting
+  const {
+    data = [],
+    error,
+    isLoading,
+  } = useQuery({
+    queryKey: ['analytics_chart_data'],
+    queryFn: async (): Promise<IAnalyticsChartData[]> => {
+      const { data, error } = await supabase
         .from('chart_data')
-        .select('*') // now permitted by your RLS policy!
+        .select('*')
+        .order('created_at', { ascending: true }) // optional: predictable order
 
-      if (error) {
-        console.error('Fetch error:', error)
-        setError(error.message)
-      } else {
-        setData(rows!)
-      }
-      setLoading(false)
-    }
-    load()
-  }, [supabase])
+      if (error) throw error
+      return data ?? []
+    },
+    placeholderData: [],
+  })
 
-  return { data, error, loading }
+  return { data, error, isLoading }
 }
