@@ -33,7 +33,7 @@ export function useTopPerformingSites() {
     }
 
     load()
-  }, [supabase])
+  }, [])
 
   return { data, error, loading }
 }

@@ -200,16 +200,12 @@ export default function RegisterPageView() {
           </Grid>
         </FormProvider>
 
-        <StyledDivider>Already have an account?</StyledDivider>
-
-        <Button
-          fullWidth
-          variant="text"
+        <StyledDivider
           onClick={() => navigate('/login')}
-          sx={{ backgroundColor: 'primary.50' }}
+          sx={{ cursor: 'pointer', ':hover': { color: 'primary.main' } }}
         >
-          Log In
-        </Button>
+          Already have an account?
+        </StyledDivider>
       </Box>
     </Layout>
   )

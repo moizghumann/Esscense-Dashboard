@@ -31,7 +31,7 @@ export function useGoalCompleteMetrics() {
     }
 
     load()
-  }, [supabase])
+  }, [])
 
   return { data, error, loading }
 }

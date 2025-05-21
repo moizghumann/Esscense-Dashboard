@@ -23,7 +23,6 @@ export default function TotalUsers() {
   const [users, setUsers] = useState<any[]>([])
 
   if (!supabase) {
-    console.error('Supabase client is not initialized')
     return
   }
 
@@ -83,7 +82,7 @@ export default function TotalUsers() {
     return () => {
       channelRef.current?.unsubscribe()
     }
-  }, [supabase])
+  }, [])
 
   useEffect(() => {
     const fetchLiveUsers = async () => {
@@ -133,7 +132,7 @@ export default function TotalUsers() {
     }
 
     fetchLiveUsers()
-  }, [supabase])
+  }, [])
 
   const options = useChartOptions({
     stroke: { show: false },

@@ -31,7 +31,7 @@ export function useMonthlySales() {
     }
 
     load()
-  }, [supabase])
+  }, [])
 
   return { data, error, loading }
 }

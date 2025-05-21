@@ -17,9 +17,10 @@ export function useBrowserSession() {
   const [loading, setLoading] = useState<boolean>(false)
 
   useEffect(() => {
+    if (!supabase) return
     const load = async () => {
       setLoading(true)
-      const { data: rows, error } = await supabase!
+      const { data: rows, error } = await supabase
         .from('browsers')
         .select('id, title, value, percentage, color')
         .order('percentage', { ascending: false })
@@ -34,7 +35,7 @@ export function useBrowserSession() {
     }
 
     load()
-  }, [supabase])
+  }, [])
 
   return { data, error, loading }
 }

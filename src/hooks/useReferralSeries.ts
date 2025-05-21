@@ -13,9 +13,10 @@ export function useReferralSeries() {
   const [loading, setLoading] = useState<boolean>(false)
 
   useEffect(() => {
+    if (!supabase) return
     const load = async () => {
       setLoading(true)
-      const { data: rows, error } = await supabase!
+      const { data: rows, error } = await supabase
         .from('referral_data')
         .select('data_idx, value')
         .order('data_idx', { ascending: true })
@@ -30,7 +31,7 @@ export function useReferralSeries() {
     }
 
     load()
-  }, [supabase])
+  }, [])
 
   return { data, error, loading }
 }

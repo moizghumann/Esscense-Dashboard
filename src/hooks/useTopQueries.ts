@@ -32,7 +32,7 @@ export function useTopQueries() {
     }
 
     load()
-  }, [supabase])
+  }, [])
 
   return { data, error, loading }
 }

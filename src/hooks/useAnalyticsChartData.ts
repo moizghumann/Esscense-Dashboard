@@ -33,7 +33,7 @@ export function useChartData() {
       setLoading(false)
     }
     load()
-  }, [supabase])
+  }, [])
 
   return { data, error, loading }
 }

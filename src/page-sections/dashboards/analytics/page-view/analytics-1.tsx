@@ -133,7 +133,7 @@ export default function Analytics1PageView() {
 
     // Dependencies: This effect should re-run if the Supabase client instance changes,
     // or if the user's ID or full name changes.
-  }, [supabase, user?.id, user?.fullName])
+  }, [user?.id, user?.fullName])
 
   return (
     <div className="pt-2 pb-4">

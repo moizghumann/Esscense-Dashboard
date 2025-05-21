@@ -33,7 +33,7 @@ export function useTopReferrals() {
     }
 
     load()
-  }, [supabase])
+  }, [])
 
   return { data, error, loading }
 }
