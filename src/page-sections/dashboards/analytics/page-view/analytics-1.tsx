@@ -12,7 +12,7 @@ import SessionBrowser from '../SessionBrowser'
 import SalesByCountry from '../SalesByCountry'
 import { useEffect, useState } from 'react'
 import { useUser } from '@clerk/clerk-react'
-import { useSupabase } from '@/contexts/supabase'
+import { useSupabase } from '@/providers/supabase'
 import { detectBrowser, IBrowserDetection } from '@/utils/browserDetection'
 import TotalUsers from '@/page-sections/dashboards/analytics/TotalUsers'
 

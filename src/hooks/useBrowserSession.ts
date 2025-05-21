@@ -1,5 +1,6 @@
-import { useSupabase } from '@/contexts/supabase'
-import { useEffect, useState } from 'react'
+// src/features/analytics/useBrowserSession.ts
+import { useQuery } from '@tanstack/react-query'
+import { useSupabase } from '@/providers/supabase'
 
 export interface IBrowser {
   id: number
@@ -12,30 +13,28 @@ export interface IBrowser {
 
 export function useBrowserSession() {
   const { supabase } = useSupabase()
-  const [data, setData] = useState<IBrowser[]>([])
-  const [error, setError] = useState<string | null>(null)
-  const [loading, setLoading] = useState<boolean>(false)
 
-  useEffect(() => {
-    if (!supabase) return
-    const load = async () => {
-      setLoading(true)
-      const { data: rows, error } = await supabase
+  // 1️⃣  Before the provider hands us a client, return a safe placeholder
+  if (!supabase) return { data: [] as IBrowser[], error: null, isLoading: true }
+
+  // 2️⃣  React Query handles fetch, cache, retries, GC
+  const {
+    data = [],
+    error,
+    isLoading,
+  } = useQuery({
+    queryKey: ['browser_session'],
+    queryFn: async (): Promise<IBrowser[]> => {
+      const { data, error } = await supabase
         .from('browsers')
         .select('id, title, value, percentage, color')
         .order('percentage', { ascending: false })
 
-      if (error) {
-        console.error('Fetch browsers error:', error)
-        setError(error.message)
-      } else {
-        setData(rows ?? [])
-      }
-      setLoading(false)
-    }
+      if (error) throw error
+      return data ?? []
+    },
+    placeholderData: [],
+  })
 
-    load()
-  }, [])
-
-  return { data, error, loading }
+  return { data, error, isLoading }
 }

@@ -1,5 +1,5 @@
-import { useSupabase } from '@/contexts/supabase'
-import { useEffect, useState } from 'react'
+import { useQuery } from '@tanstack/react-query'
+import { useSupabase } from '@/providers/supabase'
 
 export interface IMonthlySales {
   month_idx: number
@@ -9,29 +9,21 @@ export interface IMonthlySales {
 
 export function useMonthlySales() {
   const { supabase } = useSupabase()
-  const [data, setData] = useState<IMonthlySales[]>([])
-  const [error, setError] = useState<string | null>(null)
-  const [loading, setLoading] = useState<boolean>(false)
+  if (!supabase) return { data: [], error: null, isLoading: false }
 
-  useEffect(() => {
-    const load = async () => {
-      setLoading(true)
-      const { data: rows, error } = await supabase!
+  const { data, error, isLoading } = useQuery({
+    queryKey: ['monthly_sales'],
+    queryFn: async (): Promise<IMonthlySales[]> => {
+      const { data, error } = await supabase
         .from('monthly_sales')
         .select('month_idx, month_name, sales_amount')
         .order('month_idx', { ascending: true })
 
-      if (error) {
-        console.error('Fetch monthly sales error:', error)
-        setError(error.message)
-      } else {
-        setData(rows ?? [])
-      }
-      setLoading(false)
-    }
+      if (error) throw error
+      return data ?? []
+    },
+    placeholderData: [],
+  })
 
-    load()
-  }, [])
-
-  return { data, error, loading }
+  return { data, error, isLoading }
 }

@@ -8,7 +8,7 @@ import { useTheme } from '@mui/material/styles'
 // CUSTOM HOOKS
 import useChartOptions from '@/hooks/useChartOptions'
 import { useEffect, useRef, useState } from 'react'
-import { useSupabase } from '@/contexts/supabase'
+import { useSupabase } from '@/providers/supabase'
 import { CircularProgress } from '@mui/material'
 
 export default function TotalUsers() {

@@ -45,21 +45,21 @@ export default function ChartFilters({ type = 'area' }: ComponentProps) {
   const theme = useTheme()
   const { t } = useTranslation()
 
-  const { data: chartData, loading, error } = useChartData()
+  const { data: chartData, isLoading, error } = useChartData()
   const {
-    data: monthlySales,
-    loading: monthlySalesLoading,
+    data: monthlySales = [],
+    isLoading: monthlySalesLoading,
     error: monthlySalesError,
   } = useMonthlySales()
 
   const [selectedItem, setSelectedItem] = useState<number | null>(null)
 
   useEffect(() => {
-    if (!loading && !error && chartData.length > 0) {
+    if (!isLoading && !error && chartData.length > 0) {
       const idx = chartData.length > 1 ? 1 : 0
       setSelectedItem(chartData[idx].id)
     }
-  }, [chartData, loading, error])
+  }, [chartData, isLoading, error])
 
   useEffect(() => {
     if (!monthlySalesLoading && !monthlySalesError && monthlySales.length > 0) {

@@ -1,5 +1,6 @@
-import { useSupabase } from '@/contexts/supabase'
-import { useEffect, useState } from 'react'
+// src/features/analytics/useGoalCompleteMetrics.ts
+import { useQuery } from '@tanstack/react-query'
+import { useSupabase } from '@/providers/supabase'
 
 export interface IGoalCompleteMetric {
   id: number
@@ -9,29 +10,32 @@ export interface IGoalCompleteMetric {
 
 export function useGoalCompleteMetrics() {
   const { supabase } = useSupabase()
-  const [data, setData] = useState<IGoalCompleteMetric[]>([])
-  const [error, setError] = useState<string | null>(null)
-  const [loading, setLoading] = useState<boolean>(false)
 
-  useEffect(() => {
-    const load = async () => {
-      setLoading(true)
-      const { data: rows, error } = await supabase!
+  // 🔹 Safe fallback before Supabase is ready
+  if (!supabase)
+    return {
+      data: [] as IGoalCompleteMetric[],
+      error: null,
+      isLoading: true,
+    }
+
+  const {
+    data = [],
+    error,
+    isLoading,
+  } = useQuery({
+    queryKey: ['goal_complete_metrics'],
+    queryFn: async (): Promise<IGoalCompleteMetric[]> => {
+      const { data, error } = await supabase
         .from('goal_complete_metrics')
         .select('id, rate, percentage')
         .order('id', { ascending: true })
 
-      if (error) {
-        console.error('Fetch goal complete metrics error:', error)
-        setError(error.message)
-      } else {
-        setData(rows ?? [])
-      }
-      setLoading(false)
-    }
+      if (error) throw error
+      return data ?? []
+    },
+    placeholderData: [],
+  })
 
-    load()
-  }, [])
-
-  return { data, error, loading }
+  return { data, error, isLoading }
 }

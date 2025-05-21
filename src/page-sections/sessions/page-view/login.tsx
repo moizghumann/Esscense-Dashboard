@@ -29,7 +29,7 @@ import { SocialButton, StyledDivider } from '../styles'
 import { useClerk, useSession } from '@clerk/clerk-react'
 import { useNotifications } from '@toolpad/core/useNotifications'
 import { detectBrowser, IBrowserDetection } from '@/utils/browserDetection'
-import { useSupabase } from '@/contexts/supabase'
+import { useSupabase } from '@/providers/supabase'
 
 const validationSchema = Yup.object().shape({
   email: Yup.string()

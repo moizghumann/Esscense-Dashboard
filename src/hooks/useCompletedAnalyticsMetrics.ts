@@ -1,5 +1,6 @@
-import { useSupabase } from '@/contexts/supabase'
-import { useEffect, useState } from 'react'
+// src/features/analytics/useCompletedAnalyticsMetrics.ts
+import { useQuery } from '@tanstack/react-query'
+import { useSupabase } from '@/providers/supabase'
 
 export interface ICompletedMetric {
   id: number
@@ -9,30 +10,36 @@ export interface ICompletedMetric {
 
 export function useCompletedAnalyticsMetrics() {
   const { supabase } = useSupabase()
-  const [data, setData] = useState<ICompletedMetric[]>([])
-  const [error, setError] = useState<string | null>(null)
-  const [loading, setLoading] = useState<boolean>(false)
 
-  useEffect(() => {
-    if (!supabase) return
-    const load = async () => {
-      setLoading(true)
-      const { data: rows, error } = await supabase
+  // 🔸 During the very first render—before SupabaseProvider has mounted—
+  //     return a safe placeholder so callers never get `undefined`.
+  if (!supabase) {
+    return {
+      data: [] as ICompletedMetric[],
+      error: null,
+      isLoading: true,
+    }
+  }
+
+  // 🔸 Declarative data-fetch definition
+  const {
+    data = [],
+    error,
+    isLoading,
+  } = useQuery({
+    queryKey: ['completed_metrics'],
+    queryFn: async (): Promise<ICompletedMetric[]> => {
+      const { data, error } = await supabase
         .from('completed_metrics')
         .select('id, completed_goals, percentage')
         .order('id', { ascending: true })
 
-      if (error) {
-        console.error('Fetch completed metrics error:', error)
-        setError(error.message)
-      } else {
-        setData(rows ?? [])
-      }
-      setLoading(false)
-    }
+      if (error) throw error
+      return data ?? []
+    },
 
-    load()
-  }, [])
+    placeholderData: [], // instant UI (no flash of `undefined`)
+  })
 
-  return { data, error, loading }
+  return { data, error, isLoading }
 }
