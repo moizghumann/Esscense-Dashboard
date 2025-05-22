@@ -36,7 +36,7 @@ export default function TotalUsers() {
       )
       .subscribe((status) => {
         if (status !== 'SUBSCRIBED') return
-        console.log('connection established')
+        console.log('websockets connection for total users established')
       })
 
     return channel

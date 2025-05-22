@@ -47,7 +47,7 @@ export default function LoginPageView() {
   const [error, setError] = useState('')
   const { signInWithEmail, signInWithGoogle } = useTheAuth()
   const { session } = useSession()
-  const { supabase, isLoaded: isSupabaseLoaded } = useSupabase()
+  const supabase = useSupabase()
   const { signOut, setActive } = useClerk()
   const notifications = useNotifications()
 
@@ -73,10 +73,6 @@ export default function LoginPageView() {
     formState: { isSubmitting, isValid },
   } = methods
 
-  useEffect(() => {
-    console.log(session)
-  }, [session])
-
   const handleFormSubmit = handleSubmit(async (values) => {
     try {
       if (session) {
@@ -85,11 +81,9 @@ export default function LoginPageView() {
       const result = await signInWithEmail(values.email, values.password)
       if (result?.status === 'complete') {
         console.log('Sign in completed')
-        console.log(session)
 
         if (result.createdSessionId) {
           const sessionInfo = detectBrowser()
-          // console.log('user', user || null)
           await setActive({ session: result.createdSessionId })
           updateUserSession(sessionInfo)
         }
@@ -110,14 +104,13 @@ export default function LoginPageView() {
   })
 
   const updateUserSession = async (sessionInfo?: IBrowserDetection) => {
-    if (supabase && isSupabaseLoaded && session?.user?.id) {
-      console.log('user', session.user)
+    if (session?.user?.id) {
       return supabase
         .from('users')
         .update({ user_session: sessionInfo })
         .eq('user_id', session.user.id)
     }
-    return Promise.resolve() // Return a resolved promise if conditions aren't met
+    return Promise.resolve()
   }
 
   return (
