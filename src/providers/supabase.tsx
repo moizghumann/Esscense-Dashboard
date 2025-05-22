@@ -1,12 +1,15 @@
 import { useSession } from '@clerk/clerk-react'
+import { useState } from 'react'
 import { createClient, SupabaseClient } from '@supabase/supabase-js'
-import { createContext, useContext, useEffect, useState } from 'react'
+import { useEffect } from 'react'
+import { createContext } from 'react'
+import { useContext } from 'react'
 
-type Props = {
+interface Props {
   children: React.ReactNode
 }
 
-type SupabaseContext = {
+interface SupabaseContext {
   supabase: SupabaseClient | null
   isLoaded: boolean
 }
@@ -31,16 +34,19 @@ export default function SupabaseProvider({ children }: Props) {
     const client = createClient(
       import.meta.env.VITE_SUPABASE_URL!,
       import.meta.env.VITE_SUPABASE_KEY!,
-      {
-        accessToken: () => session?.getToken(),
-      }
+      { accessToken: () => session.getToken() }
     )
     setSupabase(client)
     setIsLoaded(true)
   }, [session])
 
+  // **Only render children once supabase is ready:**
+  // if (!isLoaded) {
+  //   return null // or null, whatever your app needs
+  // }
+
   return (
-    <Context.Provider value={{ supabase, isLoaded }}>
+    <Context.Provider value={{ supabase: supabase!, isLoaded }}>
       {children}
     </Context.Provider>
   )
@@ -48,9 +54,10 @@ export default function SupabaseProvider({ children }: Props) {
 
 export const useSupabase = () => {
   const context = useContext(Context)
-  if (context === undefined) {
+  if (!context) {
     throw new Error('useSupabase must be used within a SupabaseProvider')
   }
+  if (!context.supabase) throw new Error('Supabase instance is not valid')
   return {
     supabase: context.supabase,
     isLoaded: context.isLoaded,

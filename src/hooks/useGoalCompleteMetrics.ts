@@ -11,14 +11,6 @@ export interface IGoalCompleteMetric {
 export function useGoalCompleteMetrics() {
   const { supabase } = useSupabase()
 
-  // 🔹 Safe fallback before Supabase is ready
-  if (!supabase)
-    return {
-      data: [] as IGoalCompleteMetric[],
-      error: null,
-      isLoading: true,
-    }
-
   const {
     data = [],
     error,

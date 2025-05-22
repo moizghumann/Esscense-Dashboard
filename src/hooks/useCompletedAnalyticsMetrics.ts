@@ -11,16 +11,6 @@ export interface ICompletedMetric {
 export function useCompletedAnalyticsMetrics() {
   const { supabase } = useSupabase()
 
-  // 🔸 During the very first render—before SupabaseProvider has mounted—
-  //     return a safe placeholder so callers never get `undefined`.
-  if (!supabase) {
-    return {
-      data: [] as ICompletedMetric[],
-      error: null,
-      isLoading: true,
-    }
-  }
-
   // 🔸 Declarative data-fetch definition
   const {
     data = [],

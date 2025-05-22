@@ -15,11 +15,6 @@ export interface IAnalyticsChartData {
 export function useChartData() {
   const { supabase } = useSupabase()
 
-  // 1️⃣  Early app boot?  → give a safe placeholder object
-  if (!supabase)
-    return { data: [] as IAnalyticsChartData[], error: null, isLoading: true }
-
-  // 2️⃣  React Query does the heavy lifting
   const {
     data = [],
     error,

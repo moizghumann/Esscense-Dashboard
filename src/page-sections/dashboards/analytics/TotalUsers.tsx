@@ -22,10 +22,6 @@ export default function TotalUsers() {
   const [isLoading, setIsLoading] = useState(true)
   const [users, setUsers] = useState<any[]>([])
 
-  if (!supabase) {
-    return
-  }
-
   const channelRef = useRef<ReturnType<typeof supabase.channel> | null>(null)
 
   const realTimeSub = () => {
