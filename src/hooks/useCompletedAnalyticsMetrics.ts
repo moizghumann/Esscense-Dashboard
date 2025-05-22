@@ -9,7 +9,7 @@ export interface ICompletedMetric {
 }
 
 export function useCompletedAnalyticsMetrics() {
-  const { supabase } = useSupabase()
+  const supabase = useSupabase()
 
   // 🔸 Declarative data-fetch definition
   const {

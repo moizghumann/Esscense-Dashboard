@@ -14,7 +14,7 @@ import { CircularProgress } from '@mui/material'
 export default function TotalUsers() {
   const theme = useTheme()
   const { t } = useTranslation()
-  const { supabase } = useSupabase()
+  const supabase = useSupabase()
   const [seriesData, setSeriesData] = useState<
     { name: string; data: number[] }[]
   >([])

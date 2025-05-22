@@ -9,7 +9,7 @@ export interface ITopQuery {
 }
 
 export function useTopQueries() {
-  const { supabase } = useSupabase()
+  const supabase = useSupabase()
 
   const {
     data = [],

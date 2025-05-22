@@ -8,7 +8,7 @@ export interface IMonthlySales {
 }
 
 export function useMonthlySales() {
-  const { supabase } = useSupabase()
+  const supabase = useSupabase()
 
   const { data, error, isLoading } = useQuery({
     queryKey: ['monthly_sales'],

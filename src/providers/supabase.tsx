@@ -1,65 +1,47 @@
+// src/providers/SupabaseProvider.tsx
+import { createContext, useContext, useMemo, ReactNode } from 'react'
 import { useSession } from '@clerk/clerk-react'
-import { useState } from 'react'
 import { createClient, SupabaseClient } from '@supabase/supabase-js'
-import { useEffect } from 'react'
-import { createContext } from 'react'
-import { useContext } from 'react'
 
 interface Props {
-  children: React.ReactNode
+  children: ReactNode
 }
 
-interface SupabaseContext {
-  supabase: SupabaseClient | null
-  isLoaded: boolean
-}
-
-const Context = createContext<SupabaseContext>({
-  supabase: null,
-  isLoaded: false,
-})
+const Context = createContext<SupabaseClient | null>(null)
 
 export default function SupabaseProvider({ children }: Props) {
   const { session } = useSession()
-  const [supabase, setSupabase] = useState<SupabaseClient | null>(null)
-  const [isLoaded, setIsLoaded] = useState(false)
 
-  useEffect(() => {
-    if (!session) {
-      setSupabase(null)
-      setIsLoaded(false)
-      return
-    }
-
-    const client = createClient(
+  // Re-create client on session change so our fetch wrapper always sees the latest session
+  const supabase = useMemo(() => {
+    return createClient(
       import.meta.env.VITE_SUPABASE_URL!,
       import.meta.env.VITE_SUPABASE_KEY!,
-      { accessToken: () => session.getToken() }
+      {
+        // turn off Supabase's built-in localStorage handling
+        auth: { persistSession: false },
+
+        // every request goes through here
+        global: {
+          fetch: async (input, init = {}) => {
+            // fetch a fresh token on each call
+            const token = session ? await session.getToken() : null
+            const headers = new Headers(init.headers)
+            if (token) headers.set('Authorization', `Bearer ${token}`)
+            return fetch(input, { ...init, headers })
+          },
+        },
+      }
     )
-    setSupabase(client)
-    setIsLoaded(true)
   }, [session])
 
-  // **Only render children once supabase is ready:**
-  // if (!isLoaded) {
-  //   return null // or null, whatever your app needs
-  // }
-
-  return (
-    <Context.Provider value={{ supabase: supabase!, isLoaded }}>
-      {children}
-    </Context.Provider>
-  )
+  return <Context.Provider value={supabase}>{children}</Context.Provider>
 }
 
-export const useSupabase = () => {
-  const context = useContext(Context)
-  if (!context) {
-    throw new Error('useSupabase must be used within a SupabaseProvider')
+export function useSupabase() {
+  const supabase = useContext(Context)
+  if (!supabase) {
+    throw new Error('useSupabase must be inside SupabaseProvider')
   }
-  if (!context.supabase) throw new Error('Supabase instance is not valid')
-  return {
-    supabase: context.supabase,
-    isLoaded: context.isLoaded,
-  }
+  return supabase
 }

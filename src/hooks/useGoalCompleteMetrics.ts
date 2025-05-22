@@ -9,7 +9,7 @@ export interface IGoalCompleteMetric {
 }
 
 export function useGoalCompleteMetrics() {
-  const { supabase } = useSupabase()
+  const supabase = useSupabase()
 
   const {
     data = [],

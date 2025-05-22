@@ -12,7 +12,7 @@ export interface IBrowser {
 }
 
 export function useBrowserSession() {
-  const { supabase } = useSupabase()
+  const supabase = useSupabase()
 
   const {
     data = [],

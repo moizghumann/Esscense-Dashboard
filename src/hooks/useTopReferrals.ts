@@ -10,7 +10,7 @@ export interface ITopReferral {
 }
 
 export function useTopReferrals() {
-  const { supabase } = useSupabase()
+  const supabase = useSupabase()
 
   const {
     data = [],

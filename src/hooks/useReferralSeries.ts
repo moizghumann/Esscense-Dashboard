@@ -7,7 +7,7 @@ export interface IReferralSeries {
 }
 
 export function useReferralSeries() {
-  const { supabase } = useSupabase()
+  const supabase = useSupabase()
 
   const {
     data = [],

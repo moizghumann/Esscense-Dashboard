@@ -18,7 +18,7 @@ import TotalUsers from '@/page-sections/dashboards/analytics/TotalUsers'
 
 export default function Analytics1PageView() {
   const { user } = useUser()
-  const { supabase } = useSupabase()
+  const supabase = useSupabase()
 
   useEffect(() => {
     const upsertUserProfile = async () => {
@@ -103,7 +103,10 @@ export default function Analytics1PageView() {
           .single()
 
         if (fetchError) {
-          console.error('Cannot read user data - likely an RLS issue')
+          console.error(
+            'Cannot read user data - likely an RLS issue',
+            fetchError
+          )
           return
         }
 

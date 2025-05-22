@@ -13,7 +13,7 @@ export interface IAnalyticsChartData {
 }
 
 export function useChartData() {
-  const { supabase } = useSupabase()
+  const supabase = useSupabase()
 
   const {
     data = [],
