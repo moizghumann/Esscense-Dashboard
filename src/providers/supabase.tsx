@@ -1,58 +1,58 @@
+import { ReactNode, useEffect } from 'react'
 import { useSession } from '@clerk/clerk-react'
 import { createClient, SupabaseClient } from '@supabase/supabase-js'
-import { createContext, useContext, useEffect, useState } from 'react'
 
-type Props = {
-  children: React.ReactNode
-}
+let supabase: SupabaseClient
+let _getToken: () => Promise<string | null> = async () => null
 
-type SupabaseContext = {
-  supabase: SupabaseClient | null
-  isLoaded: boolean
-}
-
-const Context = createContext<SupabaseContext>({
-  supabase: null,
-  isLoaded: false,
-})
-
-export default function SupabaseProvider({ children }: Props) {
-  const { session } = useSession()
-  const [supabase, setSupabase] = useState<SupabaseClient | null>(null)
-  const [isLoaded, setIsLoaded] = useState(false)
-
-  useEffect(() => {
-    if (!session) {
-      setSupabase(null)
-      setIsLoaded(false)
-      return
-    }
-
-    const client = createClient(
+/**
+ * Call this once, at app startup, to get your singleton client.
+ * Subsequent calls will get you the same instance.
+ */
+export function getSupabaseClient() {
+  if (!supabase) {
+    supabase = createClient(
       import.meta.env.VITE_SUPABASE_URL!,
       import.meta.env.VITE_SUPABASE_KEY!,
       {
-        accessToken: () => session?.getToken(),
+        auth: { persistSession: false },
+        global: {
+          fetch: async (input, init = {}) => {
+            const token = await _getToken()
+            const headers = new Headers(init.headers)
+            if (token) headers.set('Authorization', `Bearer ${token}`)
+            return fetch(input, { ...init, headers })
+          },
+        },
       }
     )
-    setSupabase(client)
-    setIsLoaded(true)
-  }, [session])
-
-  return (
-    <Context.Provider value={{ supabase, isLoaded }}>
-      {children}
-    </Context.Provider>
-  )
+  }
+  return supabase
 }
 
-export const useSupabase = () => {
-  const context = useContext(Context)
-  if (context === undefined) {
-    throw new Error('useSupabase must be used within a SupabaseProvider')
-  }
-  return {
-    supabase: context.supabase,
-    isLoaded: context.isLoaded,
-  }
+/**
+ * Whenever your session changes, call this to update
+ * how the client fetches its token.
+ */
+export function setTokenFetcher(fn: () => Promise<string | null>) {
+  _getToken = fn
+}
+
+interface Props {
+  children: ReactNode
+}
+
+export default function SupabaseProvider({ children }: Props) {
+  const { session } = useSession()
+
+  // whenever Clerk's session object changes, give our client a new fetcher
+  useEffect(() => {
+    setTokenFetcher(async () => (session ? await session.getToken() : null))
+  }, [session])
+
+  return <>{children}</>
+}
+
+export function useSupabase() {
+  return getSupabaseClient()
 }

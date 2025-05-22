@@ -9,14 +9,7 @@ export interface ITopQuery {
 }
 
 export function useTopQueries() {
-  const { supabase } = useSupabase()
-
-  if (!supabase)
-    return {
-      data: [] as ITopQuery[],
-      error: null,
-      isLoading: true,
-    }
+  const supabase = useSupabase()
 
   const {
     data = [],

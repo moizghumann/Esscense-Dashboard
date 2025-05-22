@@ -14,17 +14,13 @@ import { CircularProgress } from '@mui/material'
 export default function TotalUsers() {
   const theme = useTheme()
   const { t } = useTranslation()
-  const { supabase } = useSupabase()
+  const supabase = useSupabase()
   const [seriesData, setSeriesData] = useState<
     { name: string; data: number[] }[]
   >([])
   const [categories, setCategories] = useState<string[]>([])
   const [isLoading, setIsLoading] = useState(true)
   const [users, setUsers] = useState<any[]>([])
-
-  if (!supabase) {
-    return
-  }
 
   const channelRef = useRef<ReturnType<typeof supabase.channel> | null>(null)
 
@@ -40,7 +36,7 @@ export default function TotalUsers() {
       )
       .subscribe((status) => {
         if (status !== 'SUBSCRIBED') return
-        console.log('connection established')
+        console.log('websockets connection for total users established')
       })
 
     return channel

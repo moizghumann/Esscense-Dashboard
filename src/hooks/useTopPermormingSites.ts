@@ -10,10 +10,7 @@ export interface ITopPerformingSite {
 }
 
 export function useTopPerformingSites() {
-  const { supabase } = useSupabase()
-
-  if (!supabase)
-    return { data: [] as ITopPerformingSite[], error: null, isLoading: true }
+  const supabase = useSupabase()
 
   const {
     data = [],

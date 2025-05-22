@@ -12,12 +12,8 @@ export interface IBrowser {
 }
 
 export function useBrowserSession() {
-  const { supabase } = useSupabase()
+  const supabase = useSupabase()
 
-  // 1️⃣  Before the provider hands us a client, return a safe placeholder
-  if (!supabase) return { data: [] as IBrowser[], error: null, isLoading: true }
-
-  // 2️⃣  React Query handles fetch, cache, retries, GC
   const {
     data = [],
     error,
