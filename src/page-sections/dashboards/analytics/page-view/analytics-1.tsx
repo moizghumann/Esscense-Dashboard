@@ -10,7 +10,7 @@ import CompleteRate from '../CompleteRate'
 import TopPerforming from '../TopPerforming'
 import SessionBrowser from '../SessionBrowser'
 import SalesByCountry from '../SalesByCountry'
-import { useEffect, useState } from 'react'
+import { useEffect, useRef } from 'react'
 import { useUser } from '@clerk/clerk-react'
 import { useSupabase } from '@/providers/supabase'
 import { detectBrowser, IBrowserDetection } from '@/utils/browserDetection'
@@ -19,48 +19,70 @@ import TotalUsers from '@/page-sections/dashboards/analytics/TotalUsers'
 export default function Analytics1PageView() {
   const { user } = useUser()
   const supabase = useSupabase()
+  const hasProcessedUser = useRef(false)
+
+  const updateUserSession = async (sessionInfo?: IBrowserDetection) => {
+    if (!supabase || !user?.id) return
+
+    try {
+      const { data: updated, error: updateError } = await supabase
+        .from('users')
+        .update({ user_session: sessionInfo })
+        .eq('user_id', user.id)
+
+      if (updateError) {
+        console.error('Update failed with error:', updateError)
+        return
+      }
+
+      if (!updated) {
+        console.warn('Update succeeded but no rows were affected')
+      }
+    } catch (error) {
+      console.error('Unexpected error during user session update:', error)
+    }
+  }
 
   useEffect(() => {
     const upsertUserProfile = async () => {
-      // Guard clause: Ensure Supabase client and essential user details are available.
-      if (!supabase || !user?.id || !user?.fullName) {
-        console.error('Supabase client or user details not available yet.')
-        return // Exit if dependencies aren't ready
+      // Skip if already processed or missing dependencies
+      if (
+        hasProcessedUser.current ||
+        !supabase ||
+        !user?.id ||
+        !user?.fullName
+      ) {
+        console.log('Skipping user profile upsert')
+        return
       }
 
       try {
         // 1. Check if a user profile already exists for this user_id
         const { data: existingUser, error: selectError } = await supabase
           .from('users')
-          .select('id') // Select a minimal field, like 'id', just to check existence
-          .eq('user_id', user.id) // Match against the authenticated user's ID
-          .maybeSingle() // Use maybeSingle to return null if no user found, instead of erroring
+          .select('id')
+          .eq('user_id', user.id)
+          .maybeSingle()
 
-        // Handle potential errors during the select query
         if (selectError) {
-          console.error(
-            'Error checking for existing user:',
-            selectError.message
-          )
-          return // Exit the function if the check failed
+          console.error('Error checking for existing user:', selectError)
+          return
         }
 
-        // 2. If no user profile exists, insert a new one
         if (!existingUser) {
+          // 2. If user doesn't exist, insert a new record
           const { error: insertError } = await supabase.from('users').insert([
             {
-              name: user.fullName, // Insert the user's full name
+              user_id: user.id,
+              name: user.fullName,
+              // email: user.primaryEmailAddress?.emailAddress,
+              // created_at: new Date().toISOString(),
             },
           ])
 
-          // Handle potential errors during the insert operation
           if (insertError) {
-            // Specifically check for unique constraint violation (code 23505 for PostgreSQL)
-            // This can happen in race conditions even with the check above.
             if (insertError.code === '23505') {
-              console.log(
-                'User already exists (detected by unique constraint).'
-              )
+              console.log('User already exists (race condition detected).')
             } else {
               console.error(
                 'Failed to insert user profile:',
@@ -71,13 +93,14 @@ export default function Analytics1PageView() {
             console.log(`Successfully inserted profile for user ${user.id}.`)
           }
         } else {
-          // 3. If user already exists, log it and do nothing
           console.log(
             `User profile for ${user.id} already exists (ID: ${existingUser.id}). No action needed.`
           )
         }
+
+        // Mark as processed to prevent duplicate operations
+        hasProcessedUser.current = true
       } catch (error) {
-        // Catch any unexpected errors during the process
         console.error(
           'An unexpected error occurred during user profile upsert:',
           error
@@ -85,58 +108,10 @@ export default function Analytics1PageView() {
       }
     }
 
-    const updateUserSession = async () => {
-      try {
-        // 1. Debug the inputs
-        const sessionInfo = detectBrowser()
-
-        if (!supabase || !user?.id) {
-          console.error('Missing supabase client or user ID')
-          return
-        }
-
-        // 2. Check if we can read the user first (tests RLS for read)
-        const { data: existingUser, error: fetchError } = await supabase
-          .from('users')
-          .select('id, user_id, user_session')
-          .eq('user_id', user.id)
-          .single()
-
-        if (fetchError) {
-          console.error(
-            'Cannot read user data - likely an RLS issue',
-            fetchError
-          )
-          return
-        }
-
-        // 3. Try the update without the throwOnError
-        const { data: updated, error: updateError } = await supabase
-          .from('users')
-          .update({ user_session: sessionInfo })
-          .eq('user_id', user.id)
-          .select()
-
-        if (updateError) {
-          console.error('Update failed with error:', updateError)
-          return
-        }
-
-        if (!updated || updated.length === 0) {
-          console.warn('Update succeeded but no rows were affected')
-        }
-      } catch (error) {
-        console.error('Unexpected error during user session update:', error)
-      }
-    }
-
-    // Execute the upsert function
+    // Execute the functions
     upsertUserProfile()
-    updateUserSession()
-
-    // Dependencies: This effect should re-run if the Supabase client instance changes,
-    // or if the user's ID or full name changes.
-  }, [user?.id, user?.fullName])
+    updateUserSession(detectBrowser())
+  }, [user?.id, user?.fullName, supabase])
 
   return (
     <div className="pt-2 pb-4">
