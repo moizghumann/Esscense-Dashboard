@@ -1,50 +1,78 @@
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import Chart from 'react-apexcharts'
 import { useTranslation } from 'react-i18next'
 // MUI
 import Card from '@mui/material/Card'
 import Button from '@mui/material/Button'
 import Typography from '@mui/material/Typography'
-import { useTheme } from '@mui/material/styles'
+import Skeleton from '@mui/material/Skeleton'
+import { CircularProgress } from '@mui/material'
+import { styled, useTheme } from '@mui/material/styles'
 // CUSTOM HOOKS
 import useChartOptions from '@/hooks/useChartOptions'
-import { useEffect, useRef, useState } from 'react'
 import { useSupabase } from '@/providers/supabase'
-import { CircularProgress } from '@mui/material'
+
+const TopStats = styled('div')({
+  display: 'flex',
+  flexDirection: 'column',
+  gap: '0.25rem',
+  minHeight: 72, // reserves space for two lines of text/skeletons
+})
+
+const ChartContainer = styled('div')({
+  position: 'relative',
+  width: '100%',
+  minHeight: 260, // reserve full chart height
+  marginTop: '1rem',
+  marginBottom: '1rem',
+})
+
+type DayOfWeek = 'Mon' | 'Tue' | 'Wed' | 'Thu' | 'Fri' | 'Sat' | 'Sun'
+
+const dayOrder: Record<DayOfWeek, number> = {
+  Mon: 1,
+  Tue: 2,
+  Wed: 3,
+  Thu: 4,
+  Fri: 5,
+  Sat: 6,
+  Sun: 7,
+}
+
+interface SeriesData {
+  day: DayOfWeek
+  value: number
+}
 
 export default function TotalUsers() {
   const theme = useTheme()
   const { t } = useTranslation()
   const supabase = useSupabase()
+
+  // data + loading flags
+  const [users, setUsers] = useState<any[]>([])
+  const [isUsersLoading, setIsUsersLoading] = useState(true)
+
   const [seriesData, setSeriesData] = useState<
     { name: string; data: number[] }[]
   >([])
   const [categories, setCategories] = useState<string[]>([])
-  const [isLoading, setIsLoading] = useState(true)
-  const [users, setUsers] = useState<any[]>([])
+  const [isChartLoading, setIsChartLoading] = useState(true)
 
+  // keep subscription ref stable
   const channelRef = useRef<ReturnType<typeof supabase.channel> | null>(null)
 
-  const realTimeSub = () => {
-    const channel = supabase.channel('realtime-users-update')
-    channel
-      .on(
-        'postgres_changes',
-        { event: '*', schema: 'public', table: 'users' },
-        (payload) => {
-          setUsers((curr) => applyChange(curr, payload))
-        }
-      )
-      .subscribe((status) => {
-        if (status !== 'SUBSCRIBED') return
-        console.log('websockets connection for total users established')
-      })
+  // initial user fetch + realtime subscription
+  const getUsers = useCallback(async () => {
+    setIsUsersLoading(true)
+    const { data, error } = await supabase.from('users').select('*')
+    if (error) console.error('Error fetching users:', error)
+    else setUsers(data ?? [])
+    setIsUsersLoading(false)
+  }, [supabase])
 
-    return channel
-  }
-
-  const applyChange = (list: any[], payload: any) => {
+  const applyChange = useCallback((list: any[], payload: any) => {
     const { eventType, new: newRow, old: oldRow } = payload
-
     switch (eventType) {
       case 'INSERT':
         return [...list, newRow]
@@ -55,84 +83,67 @@ export default function TotalUsers() {
       default:
         return list
     }
-  }
+  }, [])
 
-  const getUsers = () => {
-    supabase
-      .from('users')
-      .select('*')
-      .then(({ data, error }) => {
-        if (error) {
-          console.error('Error fetching users:', error)
-          return
+  const subscribeRealtime = useCallback(() => {
+    const channel = supabase.channel('realtime-users-update')
+    channel
+      .on(
+        'postgres_changes',
+        { event: '*', schema: 'public', table: 'users' },
+        (payload) => {
+          setUsers((curr) => applyChange(curr, payload))
         }
-        setUsers(data)
+      )
+      .subscribe((status) => {
+        if (status === 'SUBSCRIBED') {
+          console.log('Realtime user channel subscribed')
+        }
       })
-  }
+    return channel
+  }, [supabase, applyChange])
 
   useEffect(() => {
     getUsers()
-
-    channelRef.current = realTimeSub()
-
+    channelRef.current = subscribeRealtime()
     return () => {
       channelRef.current?.unsubscribe()
     }
-  }, [])
+  }, [getUsers, subscribeRealtime])
 
+  // fetch chart data
   useEffect(() => {
-    const fetchLiveUsers = async () => {
-      try {
-        setIsLoading(true)
-        const { data, error } = await supabase!
-          .from('series_data')
-          .select('id, series_id, day, value')
+    let canceled = false
 
-        if (error) {
-          console.error('Error fetching live users:', error)
-          return
+    const fetchChart = async () => {
+      setIsChartLoading(true)
+      const { data, error } = (await supabase
+        .from('series_data')
+        .select('day, value')) as { data: SeriesData[] | null; error: any }
+      if (!canceled) {
+        if (error) console.error('Error fetching chart data:', error)
+        else if (data?.length) {
+          // sort & map
+          const sorted = [...(data || [])].sort(
+            (a: SeriesData, b: SeriesData) => dayOrder[a.day] - dayOrder[b.day]
+          )
+          setSeriesData([{ name: 'Tasks', data: sorted.map((x) => x.value) }])
+          setCategories(sorted.map((x) => x.day))
         }
-
-        if (data && data.length > 0) {
-          // Sort data by day of week (using a specific order)
-          const dayOrder: Record<string, number> = {
-            Mon: 0,
-            Tue: 1,
-            Wed: 2,
-            Thu: 3,
-            Fri: 4,
-            Sat: 5,
-            Sun: 6,
-          }
-          const sortedData = [...data].sort((a, b) => {
-            // Use type assertion to tell TypeScript these are valid keys
-            return (
-              dayOrder[a.day as keyof typeof dayOrder] -
-              dayOrder[b.day as keyof typeof dayOrder]
-            )
-          })
-
-          // Extract values and days for chart
-          const values = sortedData.map((item) => item.value)
-          const days = sortedData.map((item) => item.day)
-
-          // Update state
-          setSeriesData([{ name: 'Tasks', data: values }])
-          setCategories(days)
-        }
-      } catch (error) {
-        console.error('Error fetching live users:', error)
-      } finally {
-        setIsLoading(false)
+        setIsChartLoading(false)
       }
     }
 
-    fetchLiveUsers()
-  }, [])
+    fetchChart()
+    return () => {
+      canceled = true
+    }
+  }, [supabase, dayOrder])
 
+  // chart config
   const options = useChartOptions({
     stroke: { show: false },
-    xaxis: { categories: categories },
+    xaxis: { categories },
     colors: [theme.palette.divider, theme.palette.primary.main],
     plotOptions: {
       bar: {
@@ -143,51 +154,60 @@ export default function TotalUsers() {
     },
     tooltip: {
       y: {
-        formatter: (val, { dataPointIndex, w }) => {
-          return `${w.globals.labels[dataPointIndex]} : ${val}`
-        },
+        formatter: (val, { dataPointIndex, w }) =>
+          `${w.globals.labels[dataPointIndex]} : ${val}`,
       },
     },
   })
 
   return (
     <Card className="p-3 h-full">
-      <div>
+      <TopStats>
         <Typography variant="body2" color="text.secondary">
           {t('Total Users')}
         </Typography>
 
-        <Typography variant="body2" fontSize={28} fontWeight={600}>
-          {users.length}
-        </Typography>
-      </div>
+        {isUsersLoading ? (
+          <Skeleton width="40%" height={32} />
+        ) : (
+          <Typography variant="body2" fontSize={28} fontWeight={600}>
+            {users.length}
+          </Typography>
+        )}
+      </TopStats>
 
       <Typography
         variant="body2"
         sx={{
-          mt: 3,
-          span: {
-            color: 'text.secondary',
-          },
+          mt: 1,
+          span: { color: 'text.secondary' },
         }}
       >
         {t('Page views')} <span>/ Second</span>
       </Typography>
 
-      {isLoading ? (
-        <div
-          style={{
-            display: 'flex',
-            justifyContent: 'center',
-            alignItems: 'center',
-            height: '275px',
-          }}
-        >
-          <CircularProgress />
-        </div>
-      ) : (
-        <Chart type="bar" options={options} series={seriesData} height={260} />
-      )}
+      <ChartContainer>
+        {isChartLoading ? (
+          <div
+            style={{
+              display: 'flex',
+              justifyContent: 'center',
+              alignItems: 'center',
+              height: '100%',
+            }}
+          >
+            <CircularProgress />
+          </div>
+        ) : (
+          <Chart
+            type="bar"
+            series={seriesData}
+            options={options}
+            height={260}
+            width="100%"
+          />
+        )}
+      </ChartContainer>
 
       <Button color="secondary" fullWidth>
         {t('View Details')}
