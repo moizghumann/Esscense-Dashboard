@@ -1,19 +1,26 @@
-import Chart from 'react-apexcharts'
+// src/components/SessionBrowser.tsx
+import React, { lazy, Suspense, useMemo } from 'react'
 import { useTranslation } from 'react-i18next'
-// MUI
 import Box from '@mui/material/Box'
 import Card from '@mui/material/Card'
 import Avatar from '@mui/material/Avatar'
 import Typography from '@mui/material/Typography'
 import { styled, useTheme } from '@mui/material/styles'
-// CUSTOM COMPONENTS
 import { FlexBox, FlexRowAlign } from '@/components/flexbox'
-// CUSTOM HOOKS
 import useChartOptions from '@/hooks/useChartOptions'
 import { useBrowserSession } from '@/hooks/useBrowserSession'
+import type { ApexOptions } from 'apexcharts'
 
-// STYLED COMPONENT
-const StyledChart = styled(Chart)({
+// ——— Styled components (module-scope) ———
+const Header = styled('h2')(({ theme }) => ({
+  paddingTop: theme.spacing(3),
+  fontSize: 18,
+  fontWeight: 500,
+  textAlign: 'center',
+  margin: 0,
+}))
+
+const StyledChart = styled(lazy(() => import('react-apexcharts')) as any)({
   marginTop: '.75rem',
   marginBottom: '1rem',
 })
@@ -21,73 +28,73 @@ const StyledChart = styled(Chart)({
 const Item = styled('div')(({ theme }) => ({
   display: 'flex',
   alignItems: 'center',
-  padding: '1rem 1.5rem',
+  padding: theme.spacing(1, 1.5),
   borderTop: `1px dashed ${theme.palette.divider}`,
 }))
 
-export default function SessionBrowser() {
+// ——— Main component ———
+const SessionBrowser = React.memo(function SessionBrowser() {
   const theme = useTheme()
   const { t } = useTranslation()
   const { data: browserData = [] } = useBrowserSession()
 
-  const BROWSERS = browserData.map((browser) => ({
-    ...browser,
-    image: (() => {
-      switch (browser.title) {
-        case 'Chrome':
-          return '/static/browser/chrome.svg'
-        case 'Mozilla':
-          return '/static/browser/mozilla.svg'
-        case 'Opera Mini':
-          return '/static/browser/opera.svg'
-        default:
-          return ''
-      }
-    })(),
-  }))
+  // 1) Map and memoize your browser list
+  const BROWSERS = useMemo(() => {
+    return browserData.map((b) => {
+      let image = ''
+      if (b.title === 'Chrome') image = '/static/browser/chrome.svg'
+      else if (b.title === 'Mozilla') image = '/static/browser/mozilla.svg'
+      else if (b.title === 'Opera Mini') image = '/static/browser/opera.svg'
 
-  const options = useChartOptions({
-    stroke: { show: false },
-    labels: BROWSERS.map((browser) => browser.title),
-    colors: [
-      theme.palette.primary.main,
-      theme.palette.warning.main,
-      theme.palette.success.main,
-    ],
-    plotOptions: {
-      pie: {
-        expandOnClick: false,
-        donut: { size: '75%' },
+      const color =
+        b.title === 'Chrome'
+          ? theme.palette.primary.main
+          : b.title === 'Mozilla'
+            ? theme.palette.warning.main
+            : theme.palette.success.main
+
+      return { ...b, image, color }
+    })
+  }, [
+    browserData,
+    theme.palette.primary.main,
+    theme.palette.warning.main,
+    theme.palette.success.main,
+  ])
+
+  // 2) Memoize your raw ApexOptions config
+  const rawChartConfig = useMemo<ApexOptions>(() => {
+    return {
+      stroke: { show: false },
+      labels: BROWSERS.map((b) => b.title),
+      colors: BROWSERS.map((b) => b.color),
+      plotOptions: {
+        pie: { expandOnClick: false, donut: { size: '75%' } },
       },
-    },
-    tooltip: {
-      y: {
-        formatter: (val) => String(val),
-        title: { formatter: (series) => series },
+      tooltip: {
+        y: { formatter: (v) => String(v), title: { formatter: (s) => s } },
       },
-    },
-  })
+    }
+  }, [BROWSERS])
+
+  // 3) Call the hook at top level—merges base + rawChartConfig
+  const options = useChartOptions(rawChartConfig)
+
+  // 4) Memoize series array
+  const series = useMemo(() => BROWSERS.map((b) => b.percentage), [BROWSERS])
 
   return (
     <Card className="h-full">
-      <Typography
-        variant="body2"
-        sx={{
-          pt: 3,
-          fontSize: 18,
-          fontWeight: 500,
-          textAlign: 'center',
-        }}
-      >
-        {t('Session by browser')}
-      </Typography>
+      <Header>{t('Session by browser')}</Header>
 
-      <StyledChart
-        height={180}
-        type="donut"
-        options={options}
-        series={BROWSERS.map((browser) => browser.percentage)}
-      />
+      <Suspense fallback={<Box height={180} />}>
+        <StyledChart
+          height={180}
+          type="donut"
+          options={options}
+          series={series}
+        />
+      </Suspense>
 
       {BROWSERS.map((item) => (
         <Item key={item.id}>
@@ -119,4 +126,6 @@ export default function SessionBrowser() {
       ))}
     </Card>
   )
-}
+})
+
+export default SessionBrowser
